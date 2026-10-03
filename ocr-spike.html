@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>OCR test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 12px; background: #f6f9f7; color: #1d2a24; }
+    h1 { font-size: 1.2rem; margin: 0 0 8px; }
+    section { background: #fff; border: 1px solid #d5ded9; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+    button, select, input[type=file] { font-size: 1rem; padding: 10px; margin: 4px 0; }
+    textarea { width: 100%; font-size: 1rem; }
+    pre { white-space: pre-wrap; word-break: break-word; font-size: .8rem; margin: 6px 0; }
+    table { border-collapse: collapse; font-size: .78rem; width: 100%; }
+    td, th { border-bottom: 1px solid #ddd; padding: 3px 4px; text-align: left; }
+    .ok { color: #0f5236; font-weight: 700; } .bad { color: #8f1d1d; font-weight: 700; }
+    a { color: #1b6b4f; }
+  </style>
+</head>
+<body>
+  <h1>OCR test (engine check only)</h1>
+  <p><a href="/">&larr; back to the app</a></p>
+  <section>
+    <div id="env"></div>
+    <label>Model size:
+      <select id="tier"><option value="tiny">tiny (fastest)</option><option value="small">small (more accurate?)</option></select>
+    </label><br />
+    <button id="load">1. Load the OCR engine</button>
+    <pre id="log"></pre>
+  </section>
+  <section>
+    <b>2. Choose or take a photo of the growth page</b><br />
+    <input id="file" type="file" accept="image/*" />
+    <label>Numbers written by hand that you expect (to score the result):
+      <textarea id="expected" rows="2">3.5 4.9 5.5 51.0 55.1 57.5</textarea>
+    </label>
+  </section>
+  <section id="out" hidden>
+    <div id="score"></div>
+    <div id="timing"></div>
+    <b>Text by line:</b><pre id="lines"></pre>
+    <b>Every detected piece (x, y = top-left corner in pixels):</b>
+    <div id="tokens"></div>
+  </section>
+  <script type="module" src="/src/ocr-spike.js"></script>
+</body>
+</html>
