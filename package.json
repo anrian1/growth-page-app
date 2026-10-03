@@ -1,0 +1,20 @@
+{
+  "name": "growth-page-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Offline-first web app for the Buku KIA growth page (0-24 months)",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "test": "node tests/run_tests.mjs && node tests/app_tests.mjs && vitest run"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^30.1.1",
+    "vite": "^8.3.2",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.3"
+  }
+}

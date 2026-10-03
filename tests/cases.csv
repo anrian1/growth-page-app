@@ -1,0 +1,53 @@
+case_id,group,sex,age_months,weight_kg,length_cm,exp_z_bbu,exp_z_pbu,exp_z_bbpb,exp_cat_bbu,exp_cat_pbu,exp_cat_bbpb,exp_action,tags,note
+A01,A Typical,L,3,6.5,61.0,0.16,-0.21,0.44,Berat badan normal,Normal,Gizi baik,SCORE,,near-median child; all three indices expected normal
+A02,A Typical,P,5,6.6,64.5,-0.36,0.21,-0.6,Berat badan normal,Normal,Gizi baik,SCORE,,near-median child; all three indices expected normal
+A03,A Typical,L,6,7.9,67.5,-0.04,-0.06,0.07,Berat badan normal,Normal,Gizi baik,SCORE,,near-median child; all three indices expected normal
+A04,A Typical,P,9,8.7,69.5,0.46,-0.27,0.83,Berat badan normal,Normal,Gizi baik,SCORE,,near-median child; all three indices expected normal
+A05,A Typical,L,10,8.9,74.0,-0.27,0.31,-0.53,Berat badan normal,Normal,Gizi baik,SCORE,,near-median child; all three indices expected normal
+A06,A Typical,P,12,9.1,74.5,0.14,0.19,0.05,Berat badan normal,Normal,Gizi baik,SCORE,,near-median child; all three indices expected normal
+A07,A Typical,L,14,10.5,78.5,0.36,0.18,0.38,Berat badan normal,Normal,Gizi baik,SCORE,,near-median child; all three indices expected normal
+A08,A Typical,P,15,9.0,77.0,-0.53,-0.19,-0.63,Berat badan normal,Normal,Gizi baik,SCORE,,near-median child; all three indices expected normal
+A09,A Typical,L,18,10.7,83.0,-0.2,0.27,-0.38,Berat badan normal,Normal,Gizi baik,SCORE,,near-median child; all three indices expected normal
+A10,A Typical,P,20,11.0,81.5,0.26,-0.4,0.62,Berat badan normal,Normal,Gizi baik,SCORE,,near-median child; all three indices expected normal
+B01,B Category band,L,12,6.6,67.0,-3.43,-3.68,-1.99,Berat badan sangat kurang,Sangat pendek,Gizi baik,SCORE,beyond_3SD; boundary_zone,"designed to hit a band: length z~-3.6, weight set by weight-for-age z~-3.5"
+B02,B Category band,P,15,7.1,70.5,-2.54,-2.56,-1.73,Berat badan kurang,Pendek,Gizi baik,SCORE,,"designed to hit a band: length z~-2.5, weight set by weight-for-age z~-2.5"
+B03,B Category band,L,8,10.1,78.5,1.47,3.58,-0.09,Risiko berat badan lebih,Tinggi,Gizi baik,SCORE,beyond_3SD,"designed to hit a band: length z~+3.5, weight set by weight-for-age z~+1.5"
+B04,B Category band,P,10,6.3,71.5,-2.49,0.01,-3.46,Berat badan kurang,Normal,Gizi buruk,SCORE,beyond_3SD,"designed to hit a band: length z~+0.0, weight set by weight-for-length z~-3.5"
+B05,B Category band,L,20,9.2,84.0,-1.87,-0.07,-2.56,Berat badan normal,Normal,Gizi kurang,SCORE,,"designed to hit a band: length z~+0.0, weight set by weight-for-length z~-2.5"
+B06,B Category band,P,6,8.3,65.5,1.05,-0.1,1.53,Risiko berat badan lebih,Normal,Berisiko gizi lebih,SCORE,,"designed to hit a band: length z~+0.0, weight set by weight-for-length z~+1.5"
+B07,B Category band,L,16,13.0,80.0,1.92,-0.08,2.53,Risiko berat badan lebih,Normal,Gizi lebih,SCORE,,"designed to hit a band: length z~+0.0, weight set by weight-for-length z~+2.5"
+B08,B Category band,P,18,14.2,80.5,2.55,-0.07,3.49,Risiko berat badan lebih,Normal,Obesitas,SCORE,beyond_3SD,"designed to hit a band: length z~+0.0, weight set by weight-for-length z~+3.5"
+B09,B Category band,P,22,7.6,74.5,-3.21,-3.24,-2.01,Berat badan sangat kurang,Sangat pendek,Gizi kurang,SCORE,beyond_3SD; boundary_zone,"designed to hit a band: length z~-3.2, weight set by weight-for-age z~-3.2"
+B10,B Category band,L,13,7.7,71.5,-2.26,-2.23,-1.6,Berat badan kurang,Pendek,Gizi baik,SCORE,,"designed to hit a band: length z~-2.2, weight set by weight-for-age z~-2.2"
+B11,B Category band,P,7,9.8,75.0,2.02,3.33,0.75,Risiko berat badan lebih,Tinggi,Gizi baik,SCORE,beyond_3SD,"designed to hit a band: length z~+3.3, weight set by weight-for-age z~+2.0"
+B12,B Category band,L,11,7.3,74.5,-2.31,-0.02,-3.19,Berat badan kurang,Normal,Gizi buruk,SCORE,beyond_3SD,"designed to hit a band: length z~+0.0, weight set by weight-for-length z~-3.2"
+B13,B Category band,P,21,13.3,83.5,1.6,-0.05,2.19,Risiko berat badan lebih,Normal,Gizi lebih,SCORE,,"designed to hit a band: length z~+0.0, weight set by weight-for-length z~+2.2"
+B14,B Category band,L,9,11.8,72.0,2.62,0.01,3.29,Risiko berat badan lebih,Normal,Obesitas,SCORE,beyond_3SD,"designed to hit a band: length z~+0.0, weight set by weight-for-length z~+3.3"
+C01,C Boundary,L,9,8.9,65.2,0.0,-3.02,,Berat badan normal,Sangat pendek,,SCORE,beyond_3SD; boundary_zone; wfl_off_grid,just below PB/U −3 SD (z=-3.017); weight recorded to 0.01 kg
+C02,C Boundary,L,9,8.9,65.3,0.0,-2.97,,Berat badan normal,Pendek,,SCORE,boundary_zone; wfl_off_grid,just above PB/U −3 SD (z=-2.973); weight recorded to 0.01 kg
+C03,C Boundary,P,14,7.37,76.5,-2.02,0.04,-2.87,Berat badan kurang,Normal,Gizi kurang,SCORE,boundary_zone,just below BB/U −2 SD (z=-2.023); weight recorded to 0.01 kg
+C04,C Boundary,P,14,7.41,76.5,-1.98,0.04,-2.8,Berat badan normal,Normal,Gizi kurang,SCORE,boundary_zone,just above BB/U −2 SD (z=-1.976); weight recorded to 0.01 kg
+C05,C Boundary,L,7,9.23,69.0,0.98,-0.08,1.42,Berat badan normal,Normal,Berisiko gizi lebih,SCORE,boundary_zone,just below BB/U +1 SD (z=+0.983); weight recorded to 0.01 kg
+C06,C Boundary,L,7,9.27,69.0,1.02,-0.08,1.47,Risiko berat badan lebih,Normal,Berisiko gizi lebih,SCORE,boundary_zone,just above BB/U +1 SD (z=+1.024); weight recorded to 0.01 kg
+C07,C Boundary,P,11,10.55,73.0,1.53,0.09,1.98,Risiko berat badan lebih,Normal,Berisiko gizi lebih,SCORE,boundary_zone,just below BB/PB +2 SD (z=+1.980); weight recorded to 0.01 kg
+C08,C Boundary,P,11,10.59,73.0,1.56,0.09,2.02,Risiko berat badan lebih,Normal,Gizi lebih,SCORE,boundary_zone,just above BB/PB +2 SD (z=+2.019); weight recorded to 0.01 kg
+C09,C Boundary,L,12,9.6,82.8,-0.05,2.97,,Berat badan normal,Normal,,SCORE,boundary_zone; wfl_off_grid,just below PB/U +3 SD (z=+2.967); weight recorded to 0.01 kg
+C10,C Boundary,L,12,9.6,82.9,-0.05,3.01,,Berat badan normal,Tinggi,,SCORE,beyond_3SD; boundary_zone; wfl_off_grid,just above PB/U +3 SD (z=+3.009); weight recorded to 0.01 kg
+C11,C Boundary,P,19,8.05,81.5,-2.19,-0.07,-3.02,Berat badan kurang,Normal,Gizi buruk,SCORE,beyond_3SD; boundary_zone,just below BB/PB −3 SD (z=-3.021); weight recorded to 0.01 kg
+C12,C Boundary,P,19,8.08,81.5,-2.15,-0.07,-2.98,Berat badan kurang,Normal,Gizi kurang,SCORE,boundary_zone,just above BB/PB −3 SD (z=-2.975); weight recorded to 0.01 kg
+D01,D Age edge,L,0,3.3,50.0,-0.1,0.06,-0.09,Berat badan normal,Normal,Gizi baik,SCORE,,age 0 months (row edge of the page)
+D02,D Age edge,P,0,3.0,49.0,-0.52,-0.08,-0.56,Berat badan normal,Normal,Gizi baik,SCORE,,age 0 months (row edge of the page)
+D03,D Age edge,L,1,4.5,54.5,0.05,-0.12,0.24,Berat badan normal,Normal,Gizi baik,SCORE,convention_sensitive,age 1 months (row edge of the page)
+D04,D Age edge,P,2,5.2,57.0,0.11,-0.03,0.25,Berat badan normal,Normal,Gizi baik,SCORE,convention_sensitive,age 2 months (row edge of the page)
+D05,D Age edge,L,23,12.0,86.0,0.04,-0.31,0.26,Berat badan normal,Normal,Gizi baik,SCORE,,age 23 months (row edge of the page)
+D06,D Age edge,P,24,12.0,86.0,0.36,-0.13,0.51,Berat badan normal,Normal,Gizi baik,SCORE,convention_sensitive,age 24 months (row edge of the page)
+E01,E Guardrail,P,12,84.0,74.0,,,,,,,FLAG_CONFIRM,placeholder_limits,"decimal slip: 8,4 read as 84 kg"
+E02,E Guardrail,L,10,8.5,6.9,,,,,,,FLAG_CONFIRM,placeholder_limits,"decimal slip: 69 cm read as 6,9"
+E03,E Guardrail,P,18,10.5,830.0,,,,,,,FLAG_CONFIRM,placeholder_limits,unit slip: length in mm
+E04,E Guardrail,L,25,12.0,87.0,,,,,,,OUT_OF_SCOPE,placeholder_limits,age 25 months is outside the 0-24 page
+E05,E Guardrail,,10,8.5,72.0,,,,,,,BLOCK_MISSING_SEX,placeholder_limits,sex missing: no index can be scored
+E06,E Guardrail,P,14,9.0,,-0.34,,,Berat badan normal,,,PARTIAL_BBU_ONLY,placeholder_limits,length missing: only weight-for-age can be scored
+F01,F Beyond 3 SD,L,12,6.0,70.0,-4.28,-2.42,-4.38,Berat badan sangat kurang,Pendek,Gizi buruk,SCORE,beyond_3SD,very low weight for age
+F02,F Beyond 3 SD,P,18,15.5,80.0,3.2,-0.24,4.43,Risiko berat badan lebih,Normal,Obesitas,SCORE,beyond_3SD,very high weight
+F03,F Beyond 3 SD,L,6,6.0,58.0,-2.51,-4.5,1.19,Berat badan kurang,Sangat pendek,Berisiko gizi lebih,SCORE,beyond_3SD,very short length for age
+F04,F Beyond 3 SD,P,3,6.0,67.0,0.21,3.42,-2.61,Berat badan normal,Tinggi,Gizi kurang,SCORE,beyond_3SD,very long length for age
