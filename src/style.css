@@ -31,3 +31,24 @@ th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line
 .flags ul { margin: 4px 0 0 18px; padding: 0; }
 .human { font-weight: 700; margin: 8px 0; }
 footer { text-align: center; color: var(--muted); font-size: .8rem; padding: 6px 14px 22px; }
+
+/* photo-first flow */
+.photo-btn { display: block; flex: 1; text-align: center; padding: 14px 10px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font-weight: 700; margin: 0; }
+.photo-btn.primary { background: var(--green); color: #fff; border-color: var(--green); }
+details { margin-top: 12px; }
+summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+.overlay { position: fixed; inset: 0; background: rgba(20, 30, 25, .55); z-index: 20; overflow-y: auto; padding: calc(10px + env(safe-area-inset-top)) 10px calc(10px + env(safe-area-inset-bottom)); }
+.sheet { background: #fff; border-radius: 14px; padding: 14px; max-width: 640px; margin: 0 auto; }
+.measure { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+.measure h3 { margin: 0 0 6px; font-size: 1rem; }
+.crop { background: #eef3f0; border: 1px solid var(--line); border-radius: 8px; padding: 4px; text-align: center; min-height: 48px; }
+.crop canvas { max-width: 100%; height: auto; border-radius: 4px; }
+.chip { margin: 6px 0; padding: 6px 10px; border-radius: 8px; font-size: .88rem; font-weight: 600; }
+.st-ok { background: #dff3e8; color: #0f5236; } .st-check { background: var(--amber-bg); color: var(--amber); }
+.st-bad { background: #fde3e3; color: var(--red); } .st-empty { background: #e9eeea; color: var(--muted); }
+.cands { margin: 4px 0 8px; font-size: .9rem; }
+.chip-btn { padding: 6px 14px; min-height: 36px; margin-right: 6px; border-radius: 18px; border: 1px solid var(--green); background: #fff; color: var(--green); font-weight: 700; }
+button.small { padding: 6px 10px; min-height: 36px; font-size: .9rem; }
+pre { white-space: pre-wrap; word-break: break-word; font-size: .75rem; background: #f3f6f4; padding: 8px; border-radius: 6px; }
+textarea { width: 100%; font-size: .8rem; }
+.linkish { background: none; border: none; color: var(--green); text-decoration: underline; padding: 6px 0; }

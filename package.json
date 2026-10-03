@@ -8,7 +8,7 @@
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview --host",
-    "test": "node tests/run_tests.mjs && node tests/app_tests.mjs && node tests/ocr_helpers_tests.mjs && node tests/mapping_tests.mjs && node tests/ocr_view_tests.mjs && vitest run",
+    "test": "node tests/run_tests.mjs && node tests/app_tests.mjs && node tests/ocr_helpers_tests.mjs && node tests/mapping_tests.mjs && node tests/ocr_view_tests.mjs && node tests/readcell_tests.mjs && node tests/session_tests.mjs && vitest run",
     "setup-ocr": "node scripts/setup-ocr.mjs",
     "prebuild": "node scripts/setup-ocr.mjs"
   },

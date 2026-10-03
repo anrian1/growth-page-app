@@ -1,9 +1,34 @@
 # KIA Tumbuh (growth-page-app)
 
 Offline-first web app for the Buku KIA growth page (children 0-24 months).
-A person enters the measurements, the app calculates WHO z-scores and Permenkes 2/2020 categories,
-the person confirms, the record is saved on the phone, and a CSV can be exported for the puskesmas.
-No server, no cloud. Typed entry works now. Photo reading (OCR) is being tested on a separate page (`/ocr-spike.html`).
+The cadre enters who the child is (sex, date of birth), photographs the filled-in growth page, checks what the app read in a
+popup (a picture of each handwritten cell next to the reading), and gets WHO z-scores and Permenkes 2/2020 categories.
+The record is saved on the phone, and a CSV can be exported for the puskesmas. No server, no cloud.
+
+## The flow
+1. **Data anak**: sex, date of birth, measurement date, optional child code (with check digit).
+2. **Foto**: photo of the page (camera or gallery). Typed entry ("Isi manual") is the fallback.
+3. **Popup "Periksa hasil bacaan"**: for the child's row, the weight and length cells are shown as pictures with the reading beside them.
+   Cells that were read consistently are prefilled; unclear cells get no prefilled guess, only tappable candidates; a person must tick
+   "I compared the numbers with the handwriting in the photo" for anything that is not fully consistent.
+4. **Hasil**: z-scores (BB/U, PB/U, BB/PB) and categories, flagged if a value is implausible; the person saves.
+
+## How a cell is read (src/template.js, mapping.js, readcell.js, session.js)
+- **The blank page is learned as a template** (`src/template.js`): four handwriting columns, month rows 0-24, plausible ranges, where printed headers are.
+  The printed "Ideal"/"Aktual" words, month numbers and the printed Ideal numbers are used as position markers, so only the handwriting cells are read.
+  A different form would be a different template.
+- **Pass 1**: the whole page is read once to find the layout (tilt, leaning columns, row positions).
+- **Pass 2**: only the two cells of the child's row are cut out and read at three sizes. With the whole-page reading that is up to four readings per cell.
+- **Voting** (`voteReadings`): at least 3 of 4 readings must agree for "ok"; letters or spaces read as digits downgrade to "check";
+  a tie or no leader gives no value, only candidates; a single lone reading is never accepted.
+- **Ink check**: a cell with no ink is "empty" (so a blank cell is never filled with a hallucinated number).
+- **Audit trail**: each saved value records how it was obtained (`photo_ok`, `photo_checked`, `photo_chosen`, `photo_edited`, `typed`) and the CSV has
+  `weight_source` and `length_source` columns. The share of edited values is a direct, field-collected measure of reading accuracy.
+
+## NOT yet tested on a real phone
+The reading logic is tested with the real page layout from two real OCR runs and with a fake camera and fake OCR engine. The new
+cell-crop reading (Pass 2), the ink threshold (`INK_MIN` in `src/readcell.js`) and the model size choice (`DEFAULT_TIER` in `src/ocr-engine.js`)
+have not been tested with the real model on a real phone. The popup has a "Detail teknis" section that shows every reading, for that purpose.
 
 ## Run on your computer
     npm install

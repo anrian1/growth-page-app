@@ -5,13 +5,14 @@
 // so the printed Ideal numbers are never mistaken for handwriting.
 // Nothing here guesses silently: every cell says how sure it is ("ok", "check" or "unreadable").
 import { analyseNumber } from './ocr-helpers.js';
+import { TEMPLATE, kindOfColumn } from './template.js';
 
-export const COLUMNS = ['L-weight', 'L-length', 'P-weight', 'P-length'];
-const RANGE = { weight: [1, 25], length: [40, 100] };      // same limits as the calculator
+export const COLUMNS = TEMPLATE.columns;
+const RANGE = { weight: TEMPLATE.kinds.weight.range, length: TEMPLATE.kinds.length.range };
 
 const cx = (t) => t.x + t.w / 2;
 const cy = (t) => t.y + t.h / 2;
-const kindOf = (column) => (column.endsWith('weight') ? 'weight' : 'length');
+const kindOf = kindOfColumn;
 
 function editDistance(a, b) {
   const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
@@ -52,8 +53,8 @@ export function mapTokens(tokens) {
   const out = { ok: false, problems, geometry: null, cells: {}, unreadable: [] };
 
   // 1. header words
-  const akt = tokens.filter((t) => isWord(t.text, 'aktual')).sort((a, b) => cx(a) - cx(b));
-  const ideal = tokens.filter((t) => isWord(t.text, 'ideal')).sort((a, b) => cx(a) - cx(b));
+  const akt = tokens.filter((t) => isWord(t.text, TEMPLATE.headerWords.actual)).sort((a, b) => cx(a) - cx(b));
+  const ideal = tokens.filter((t) => isWord(t.text, TEMPLATE.headerWords.ideal)).sort((a, b) => cx(a) - cx(b));
   if (akt.length < 4) { problems.push(`Found ${akt.length} "Aktual" headers, need 4. Is the whole table in the photo?`); return out; }
   const aktHeaders = akt.length > 4 ? akt.sort((a, b) => a.y - b.y).slice(0, 4).sort((a, b) => cx(a) - cx(b)) : akt;
   const headerBottom = Math.max(...aktHeaders.map((t) => t.y + t.h));
@@ -66,7 +67,7 @@ export function mapTokens(tokens) {
   const varX = hp.reduce((a, q) => a + (q[0] - mx) ** 2, 0);
   const slope = varX > 0 ? hp.reduce((a, q) => a + (q[0] - mx) * (q[1] - my), 0) / varX : 0;
   if (Math.abs(slope) > 0.2) { problems.push('The page looks tilted by more than 10 degrees. Retake the photo straight on.'); return out; }
-  const bulan = tokens.find((t) => isWord(t.text, 'bulan'));
+  const bulan = tokens.find((t) => isWord(t.text, TEMPLATE.headerWords.month));
   const X0 = bulan ? cx(bulan) : cx(idealHeaders[0]) - 1.2 * (cx(aktHeaders[0]) - cx(idealHeaders[0]));
   const adjY = (t) => cy(t) - slope * (cx(t) - X0);                 // y with the tilt removed
   const gaps = aktHeaders.map((a, i) => cx(a) - cx(idealHeaders[i]));
@@ -173,10 +174,10 @@ export function mapTokens(tokens) {
 }
 
 /** A rectangle (same pixel space as the tokens) around one cell, for cropping a picture of it. */
-export function cellRect(geometry, column, month) {
+export function cellRect(geometry, column, month, size = { widthOfPairGap: 0.8, heightOfRowSpacing: 0.95 }) {
   const i = COLUMNS.indexOf(column);
   const { lines, gaps, mHeader, slope, X0, rowCoef } = geometry;
-  const w = geometry.pairGap * 0.8; const h = geometry.rowSpacing * 0.95;
+  const w = geometry.pairGap * size.widthOfPairGap; const h = geometry.rowSpacing * size.heightOfRowSpacing;
   const xc = lines[i].c + gaps[i] + lines[i].b * (month - mHeader);
   const yc = evalPoly(rowCoef, month) + slope * (xc - X0);
   return { x: xc - w / 2, y: yc - h / 2, w, h };
