@@ -42,6 +42,24 @@
     <b>Every detected piece (x, y = top-left corner in pixels):</b>
     <div id="tokens"></div>
   </section>
+  <section id="mapped" hidden>
+    <b>3. Mapped cells (what the app would take from the page)</b>
+    <div id="cells"></div>
+    <hr />
+    <b>4. Read one row, as the app would for one child</b><br />
+    <label>Sex:
+      <select id="row-sex"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select>
+    </label>
+    <label>Month (row):
+      <input id="row-month" type="number" min="0" max="24" value="0" style="width:5em" />
+    </label>
+    <button id="row-go">Read this row</button>
+    <div id="row-out"></div>
+    <div id="row-crops"></div>
+    <hr />
+    <b>Copy for the developer (paste this to Claude to test other photos):</b>
+    <textarea id="token-json" rows="3" readonly></textarea>
+  </section>
   <script type="module" src="/src/ocr-spike.js"></script>
 </body>
 </html>

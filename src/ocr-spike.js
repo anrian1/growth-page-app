@@ -3,10 +3,13 @@
 import * as ort from 'onnxruntime-web';
 import { PaddleOcrService } from 'ppu-paddle-ocr/web';
 import { toNumber, matchTruth, parseExpected } from './ocr-helpers.js';
+import { mapTokens, readRow, cellRect, mergeReadings } from './mapping.js';
+import { renderCellsTable, renderRowResult } from './ocr-view.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const log = (m) => { $('log').textContent += m + '\n'; };
+const SCALES = [1, 0.8];   // the photo is read twice, at two sizes; cells where the two readings differ are flagged
 const MAX_SIDE = 1600;   // big phone photos are shrunk first; iPhone Safari can run out of memory otherwise
 
 const MODELS = {
@@ -20,6 +23,7 @@ ort.env.wasm.numThreads = isolated ? Math.min(4, navigator.hardwareConcurrency |
 $('env').innerHTML = `Online now: <b>${navigator.onLine}</b> &middot; cross-origin isolated (faster threads): <b>${isolated}</b> &middot; CPU cores: <b>${navigator.hardwareConcurrency || '?'}</b><br>${esc(navigator.userAgent)}`;
 
 const services = {};
+let lastCanvas = null; let lastMapped = null;
 async function getService(tier) {
   if (services[tier]) return services[tier];
   const t0 = performance.now();
@@ -57,7 +61,14 @@ $('file').addEventListener('change', async (event) => {
     log(`Photo ${img.width}x${img.height}, reading at ${canvas.width}x${canvas.height}...`);
     await new Promise((r) => setTimeout(r, 50));    // let the page paint before the heavy work starts
     const t0 = performance.now();
-    const result = await service.recognize(canvas);
+    const passes = [];
+    for (const sc of SCALES) {
+      const c = sc === 1 ? canvas : document.createElement('canvas');
+      if (sc !== 1) { c.width = Math.round(canvas.width * sc); c.height = Math.round(canvas.height * sc); c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height); }
+      passes.push({ scale: sc, canvas: c, result: await service.recognize(c) });
+      await new Promise((r) => setTimeout(r, 20));
+    }
+    const result = passes[0].result;
     const seconds = (performance.now() - t0) / 1000;
 
     const tokens = result.lines.flat();
@@ -67,12 +78,43 @@ $('file').addEventListener('change', async (event) => {
     $('score').innerHTML = expected.length
       ? `Expected numbers found: <span class="${missing.length ? 'bad' : 'ok'}">${found.length} of ${expected.length}</span>${missing.length ? ` &middot; not found: ${missing.join(', ')}` : ''}`
       : 'No expected numbers entered.';
-    $('timing').innerHTML = `Reading time: <b>${seconds.toFixed(1)} s</b> &middot; ${tokens.length} pieces &middot; mean confidence ${result.confidence.toFixed(2)}`;
+    $('timing').innerHTML = `Reading time: <b>${seconds.toFixed(1)} s</b> for ${SCALES.length} passes &middot; ${tokens.length} pieces (first pass) &middot; mean confidence ${result.confidence.toFixed(2)}`;
     $('lines').textContent = result.lines.map((line) => line.map((t) => t.text).join('   ')).join('\n');
     $('tokens').innerHTML = `<table><thead><tr><th>text</th><th>number?</th><th>conf</th><th>x</th><th>y</th><th>w</th><th>h</th></tr></thead><tbody>${
       tokens.map((t) => `<tr><td>${esc(t.text)}</td><td>${toNumber(t.text) ?? ''}</td><td>${t.confidence.toFixed(2)}</td><td>${Math.round(t.box.x)}</td><td>${Math.round(t.box.y)}</td><td>${Math.round(t.box.width)}</td><td>${Math.round(t.box.height)}</td></tr>`).join('')}</tbody></table>`;
+    // 3. map the pieces to cells (column + month)
+    const toTokens = (res) => res.lines.flat().map((t) => ({ text: t.text, x: t.box.x, y: t.box.y, w: t.box.width, h: t.box.height }));
+    const mappedList = passes.map((p) => mapTokens(toTokens(p.result)));
+    lastMapped = mergeReadings(mappedList);
+    const gi = Math.max(0, mappedList.findIndex((m) => m.ok));
+    lastCanvas = passes[gi].canvas;                  // thumbnails must use the picture that the geometry belongs to
+    const forMapping = toTokens(passes[gi].result);
+    $('mapped').hidden = false;
+    $('cells').innerHTML = renderCellsTable(lastMapped);
+    $('token-json').value = JSON.stringify({ tokens: forMapping.map((t) => ({ ...t, x: Math.round(t.x), y: Math.round(t.y), w: Math.round(t.w), h: Math.round(t.h) })) });
+    $('row-out').innerHTML = ''; $('row-crops').innerHTML = '';
     log(`Done in ${seconds.toFixed(1)} s`);
   } catch (e) {
     log('ERROR: ' + (e && e.message ? e.message : e));
+  }
+});
+
+// 4. read one row and show a picture of each cell next to the reading, so a person can check by eye
+$('row-go').addEventListener('click', () => {
+  if (!lastMapped || !lastMapped.ok) { $('row-out').innerHTML = '<p class="bad">Read a photo first (and the page must be mapped).</p>'; return; }
+  const sex = $('row-sex').value; const month = Number($('row-month').value);
+  const row = readRow(lastMapped, { month, sex });
+  $('row-out').innerHTML = renderRowResult(row);
+  $('row-crops').innerHTML = '';
+  const cols = sex === 'L' ? ['L-weight', 'L-length'] : ['P-weight', 'P-length'];
+  for (const column of cols) {
+    const r = cellRect(lastMapped.geometry, column, month);
+    const thumb = document.createElement('canvas');
+    thumb.width = 200; thumb.height = Math.max(40, Math.round(200 * (r.h / r.w)));
+    thumb.getContext('2d').drawImage(lastCanvas, Math.max(0, r.x), Math.max(0, r.y), r.w, r.h, 0, 0, thumb.width, thumb.height);
+    const box = document.createElement('div');
+    box.innerHTML = `<small>${column}, month ${month}</small><br>`;
+    box.appendChild(thumb); box.style.display = 'inline-block'; box.style.marginRight = '10px';
+    $('row-crops').appendChild(box);
   }
 });
