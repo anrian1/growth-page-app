@@ -158,12 +158,23 @@ export async function readRecordFields(session, { engine, photo, onProgress = ()
   let n = 0;
   // prescription rows (form v4): a row is EMPTY when the name box and its three number boxes show no ink. Empty rows are not read at all (saves time).
   const rowKeys = (r) => [`rx${r}Amt`, `rx${r}Freq`, `rx${r}Days`];
+  // A photo of a screen has glare and moire that look like ink, so "some ink" is not enough to call a row used:
+  //   no ink at all -> empty;  very strong ink -> used (even if nothing could be read: a person chooses);
+  //   in between -> ONE quick read of the whole row: text found = used, nothing found = empty.
+  const ROW_STRONG_INK = 0.2;
   const rowUsed = {};
   for (const r of ROW_NUMBERS) {
-    let used = false;
     const boxes = [MEDREC.names[`rx${r}Name`].box, ...rowKeys(r).map((k) => MEDREC.fields[k].box)];
-    for (const b of boxes) { const pic = await photo.crop(session.img, toSource(readRect(placeBox(aligned.H, b))), 96); if (photo.ink(pic) >= INK_MIN) used = true; }
-    rowUsed[r] = used;
+    const rects4 = boxes.map((b) => toSource(readRect(placeBox(aligned.H, b))));
+    let maxInk = 0;
+    for (const rc of rects4) { const pic = await photo.crop(session.img, rc, 96); maxInk = Math.max(maxInk, photo.ink(pic)); }
+    if (maxInk < INK_MIN) { rowUsed[r] = false; continue; }
+    if (maxInk >= ROW_STRONG_INK) { rowUsed[r] = true; continue; }
+    const x0 = Math.min(...rects4.map((q) => q.x)); const y0 = Math.min(...rects4.map((q) => q.y));
+    const strip = { x: x0, y: y0, w: Math.max(...rects4.map((q) => q.x + q.w)) - x0, h: Math.max(...rects4.map((q) => q.y + q.h)) - y0 };
+    let text = '';
+    try { text = tokensToText(await engine.recognize(await photo.crop(session.img, strip, 192), CELL_OCR_OPTIONS)); } catch (e) { text = ''; }
+    rowUsed[r] = /[0-9A-Za-z]/.test(text);
   }
   const rowOf = (key) => { const m = /^rx(\d)(Amt|Freq|Days)$/.exec(key); return m ? Number(m[1]) : null; };
   for (const key of RECORD_FIELDS) {

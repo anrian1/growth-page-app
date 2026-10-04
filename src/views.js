@@ -68,7 +68,8 @@ function rxBlock(row, info) {
   const f = row.rx.fields; const c = row.cells; const pk = info.pack;
   const used = row.rows.filter((x) => !x.empty); const unused = row.rows.filter((x) => x.empty);
   const any = used.some((x) => ['dhp', 'pq', 'art'].includes(x.name.drug)) || ['species', 'testResult', 'artesunateMg'].some((k) => f[k].value !== null);
-  const speciesOpts = opts([['', 'tidak jelas: pilih'], ...Object.entries(pk.species).map(([k, sp]) => [k, sp.label])], f.species.value);
+  const speciesOpts = opts([['', 'tidak jelas: pilih'], ['unknown', 'tidak diketahui (dosis tidak diperiksa)'], ...Object.entries(pk.species).map(([k, sp]) => [k, sp.label])], f.species.value);
+  const needSpecies = !f.species.value && used.some((x) => ['dhp', 'pq'].includes(x.name.drug));
   const formDefault = row.rxAuto.formulation || f.formulation.value || 'standard';
   const typeDefault = f.treatment.value === 'severe' || row.rxAuto.art ? 'severe' : 'uncomplicated';
   const notes = [...row.rx.notes, ...row.rxAuto.notes];
@@ -77,6 +78,7 @@ function rxBlock(row, info) {
     <h4>Baris resep</h4>
     ${used.map((x) => rxRow(x, c)).join('') || '<p class="muted">Tidak ada baris resep yang terisi.</p>'}
     ${unused.length ? `<details><summary>Baris kosong (${unused.length}): buka bila ada tulisan yang terlewat</summary>${unused.map((x) => rxRow(x, c)).join('')}</details>` : ''}
+    ${needSpecies ? '<p class="error">Jenis malaria belum terbaca. Pilih jenisnya, atau "tidak diketahui".</p>' : ''}
     <label>Jenis malaria (dari tulisan Asessemen) ${mark(f.species)}<select id="rx-species">${speciesOpts}</select></label>
     <label>Hasil tes darah (dari tulisan) ${mark(f.testResult)}<select id="rx-test">${opts([['none', 'belum ada hasil'], ['positive', 'positif'], ['negative', 'negatif']], f.testResult.value ?? 'none')}</select></label>
     <label>Jenis pengobatan<select id="rx-type">${opts([['uncomplicated', 'tanpa komplikasi (DHP + primakuin)'], ['severe', 'malaria berat (artesunat injeksi)']], typeDefault)}</select></label>
@@ -116,6 +118,7 @@ export function renderRecordConfirm({ row, fields, malariaInfo = null }) {
     <h3 class="group">Identitas</h3>
     ${mrnBlock}${sexBlock}${dateBlock('dob', 'Tanggal lahir', ['dobD', 'dobM', 'dobY'])}${dateBlock('tgl', 'TGL kunjungan (kolom TGL)', ['tglD', 'tglM', 'tglY'])}
     <div class="ageline"><p id="rc-age" class="human"></p><div id="rc-age-flags"></div></div>
+    <div id="rc-plausibility"></div>
     <h3 class="group">Tanda vital</h3>
     ${td}${FIELD_ORDER.map((k) => measure(k, fields[k], c[k])).join('')}
     <h3 class="group">Diagnosis dan resep</h3>

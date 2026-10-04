@@ -93,7 +93,23 @@ function updateAge() {
   if (dob.ok && visit.ok) { age = checkAge(dob.iso, visit.iso, todayIso()); notes.push(...age.flags); }
   target.textContent = age && age.ageMonths !== null ? `Umur dari tanggal lahir dan TGL: ${age.ageText}` : 'Umur belum bisa dihitung.';
   flags.innerHTML = notes.map((n) => `<p class="error">${esc(n)}</p>`).join('');
+  updatePlausibility(age);
   return { dob, visit, age };
+}
+
+/** Live check while the popup is open: do weight and height fit the age? If not, "Konfirmasi" is blocked until the value is changed or the person ticks "memang benar". */
+function updatePlausibility(age) {
+  const box = $('rc-plausibility'); if (!box) return;
+  const sex = (document.querySelector('input[name=rc-sex]:checked') || {}).value;
+  const w = parseNumber($('f-weight').value); const h = parseNumber($('f-height').value);
+  let warn = '';
+  if (age && age.ok && age.scope === 'nutrition' && (sex === 'L' || sex === 'P') && w !== null && !Number.isNaN(w)) {
+    const a = assess({ sex, ageMonths: age.ageMonths, weightKg: w, lengthCm: h === null || Number.isNaN(h) ? null : h });
+    if (a.action === 'FLAG_CONFIRM') warn = `Berat ${w} kg${h ? ` dan tinggi ${h} cm` : ''} tidak sesuai untuk umur ${age.ageText}. ${a.flags.join(' ')}`;
+  }
+  if (!warn) { box.innerHTML = ''; return; }
+  const was = $('c-plaus') && $('c-plaus').checked;
+  box.innerHTML = `<div class="flags"><strong>Periksa berat dan tinggi di kertas</strong><p>${esc(warn)}</p></div><label class="inline"><input id="c-plaus" type="checkbox"${was ? ' checked' : ''} /> Nilai ini memang benar (sudah dicek di kertas)</label>`;
 }
 
 function openConfirm() {
@@ -112,6 +128,8 @@ function openConfirm() {
   $('c-json').value = JSON.stringify({ sex: row.sex, ticks: row.ticks.ratios, tokens: session.tokens.length, piiDropped: session.piiDropped, anchors: session.aligned.anchors });
   overlay.querySelectorAll('[data-fill]').forEach((b) => b.addEventListener('click', () => { const el = $(`f-${b.dataset.fill}`); if (el) el.value = b.dataset.text || b.dataset.value; updateAge(); }));
   for (const k of DATE_KEYS) $(`f-${k}`).addEventListener('input', () => updateAge());
+  for (const id of ['f-weight', 'f-height']) $(id).addEventListener('input', () => updateAge());
+  document.querySelectorAll('input[name=rc-sex]').forEach((el) => el.addEventListener('change', () => updateAge()));
   const refreshRow = (r) => { const t = tabletsPerDay($(`f-rx${r}Amt`).value, intOrNull($(`f-rx${r}Freq`).value)); const el = $(`rx${r}-perday`); if (el) el.textContent = t.value ? `= ${tabLabel(t.value)} tablet per hari (tablet per dosis x kali per hari)` : ''; };
   for (const r of ROW_NUMBERS) { for (const id of [`f-rx${r}Amt`, `f-rx${r}Freq`]) { $(id).addEventListener('input', () => refreshRow(r)); $(id).addEventListener('change', () => refreshRow(r)); } refreshRow(r); }
   overlay.querySelectorAll('[data-fill]').forEach((b) => b.addEventListener('click', () => { const m = /^rx(\d)/.exec(b.dataset.fill); if (m) refreshRow(Number(m[1])); }));
@@ -168,6 +186,7 @@ function confirmValues() {
     values[k] = v;
   }
   if (values.weight === null) { show('confirm-error', 'Isi berat badan (BB): dibutuhkan untuk status gizi dan dosis.'); return; }
+  if ($('c-plaus') && !$('c-plaus').checked) { show('confirm-error', 'Berat dan tinggi tampak tidak sesuai untuk umur ini. Periksa di kertas dan ubah, atau centang "Nilai ini memang benar".'); return; }
   const needsCheck = Object.values(row.cells).some((x) => x.status !== 'ok' && x.status !== 'empty') || row.sex.status !== 'ok';
   if (needsCheck && !($('c-check') && $('c-check').checked)) { show('confirm-error', 'Centang "Saya sudah membandingkan semua angka dengan tulisan di foto".'); return; }
   // every row that has writing needs a drug chosen; the same drug may not sit in two rows
@@ -177,6 +196,7 @@ function confirmValues() {
   }
   const rx = readRxFromPopup();
   if (rx.conflicts.length) { show('confirm-error', rx.notes.find((n) => /baris/.test(n)) || 'Obat yang sama ada di dua baris.'); return; }
+  if (readRows().some((x) => x.drug === 'dhp' || x.drug === 'pq') && rx.type === 'uncomplicated' && !rx.species) { show('confirm-error', 'Pilih jenis malaria (atau "tidak diketahui") agar dosis bisa diperiksa.'); return; }
   const autoAny = row.rows.some((x) => !x.empty && ['dhp', 'pq', 'art'].includes(x.name.drug)) || ['species', 'testResult', 'artesunateMg'].some((k) => row.rx.fields[k].value !== null);
   if (autoAny && !($('c-rx-check') && $('c-rx-check').checked)) { show('confirm-error', 'Centang "Sesuai tulisan" setelah membandingkan nama obat, angka dan diagnosis dengan gambarnya.'); return; }
   const unchanged = rxSignature() === initialRxSig;

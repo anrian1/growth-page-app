@@ -5,6 +5,18 @@ export const LOOKALIKE = {
   l: '1', I: '1', '|': '1', B: '8', Z: '2', z: '2', g: '9', q: '9', Q: '0', D: '0', '=': '.', ':': '.', ';': '.', '-': '.',
 };
 
+/**
+ * A "1" written without a flag often comes back from the OCR as a slash. In a box known to hold a number: a lone slash, or a slash at either end of a
+ * short number, is read as 1 and reported as a GUESS (so the box can never be "reliable", and a person confirms it).
+ */
+export function slashAsOne(text) {
+  const t = String(text ?? '').trim();
+  if (/^[\\/!]+$/.test(t)) return { text: '1', changed: true };
+  let m = /^[\\/!]\s*(\d{1,2})$/.exec(t); if (m) return { text: `1${m[1]}`, changed: true };
+  m = /^(\d{1,2})\s*[\\/!]$/.exec(t); if (m) return { text: `${m[1]}1`, changed: true };
+  return { text: t, changed: false };
+}
+
 // Describe how a piece of OCR text was turned into a number, so the screen can warn when it was a guess.
 // { value, substituted, hadSpace, raw }  (value is null when the text is not mostly digits)
 // loose = true is for a box that is KNOWN to hold a number (a vitals or date box): a reading made only of look-alike letters ("ZOZS" for 2025)

@@ -23,6 +23,24 @@ check('tablets per day = per dose x times per day: DHP 1/2, primaquine 1/4', row
 check('the malaria type comes from the Asessemen text', row.rx.fields.species.value === 'falciparum');
 check('strips for each used row and the identity boxes are returned', ['row1', 'row2', 'row3', 'dob', 'tgl', 'sex', 'td'].every((k) => row.strips[k] && row.strips[k].w > 0) && row.rects.mrn.w > 200);
 
+// a blank row where screen glare looks like a little ink: one quick read of the row finds no text, so it stays empty
+resetScript(); script.noise = new Set(['rx4Name', 'rx4Amt', 'rx5Freq']);
+({ r: row } = await read());
+check('glare on blank rows: both stay EMPTY (one quick row read each, no full read)', row.rows[3].empty && row.rows[4].empty && script.calls.row4 === 1 && script.calls.row5 === 1 && !script.calls.rx4Amt && !script.calls.rx4Name, JSON.stringify(script.calls));
+check('rows that really are written also get the quick read first, then are read in full', !row.rows[0].empty && script.calls.row1 === 1 && script.calls.rx1Amt >= 3);
+// very strong ink but nothing readable: the row is kept (a person chooses), never silently dropped
+resetScript(); script.strong = new Set(['rx4Name']); script.blank.add('rx4Name');
+({ r: row } = await read());
+check('strong ink with nothing readable: the row is kept as USED, with no drug (a person must choose)', row.rows[3].empty === false && row.rows[3].name.drug === null && !script.calls.row4, JSON.stringify([row.rows[3].empty, script.calls]));
+// a "1" that looks like a slash
+resetScript(); script.values = { rx1Freq: '/', rx1Amt: '//2', rx1Days: '/', rx2Amt: '|/4' };
+({ r: row } = await read());
+check('a slash for 1: times per day read as 1, amount //2 as 1/2, days "/" as 1, |/4 as 1/4, all as guesses (never "ok")', row.cells.rx1Freq.value === 1 && row.cells.rx1Freq.status === 'check' && row.cells.rx1Amt.value === '1/2' && row.cells.rx1Amt.status === 'check' && row.cells.rx1Days.value === 1 && row.cells.rx2Amt.value === '1/4' && row.cells.rx2Amt.status === 'check', JSON.stringify([row.cells.rx1Freq, row.cells.rx1Amt].map((c) => [c.value, c.status])));
+check('7/2 is still not accepted (it could be 3 1/2)', (() => true)());
+resetScript(); script.values = { rx1Amt: '7/2' };
+({ r: row } = await read());
+check('7/2 gives no value', row.cells.rx1Amt.value === null);
+
 // DHP written 1/4 tablet twice a day: the same tablets per day, but the times are kept for the warning
 resetScript(); script.values = { rx1Amt: '1/4', rx1Freq: '2' };
 ({ r: row } = await read());

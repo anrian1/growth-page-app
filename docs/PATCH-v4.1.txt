@@ -1,0 +1,17 @@
+HONAI patch v4.1: blank rows, a "1" that looks like a slash, live weight/height warning, malaria type required
+==============================================================================================================
+Unzip this patch INTO your project folder (the one with package.json), replacing files. No npm install needed.
+
+1. git add . ; git commit -m "checkpoint before v4.1"      (you can also: git tag before-v4.1)
+2. unzip the patch over the project folder (replace)
+   PowerShell:  Expand-Archive -Path "$HOME\Downloads\honai-patch-v4.1.zip" -DestinationPath . -Force
+3. npm test      -> should end with "Tests 36 passed (36)"
+4. git add . ; git commit -m "v4.1: blank rows, slash for 1, plausibility warning, malaria type" ; git push
+5. wait for Vercel to show Ready, then close the app fully on the phone and reopen it
+
+What changed
+- Blank rows: a row counts as used only if a quick read of the whole row finds text (or the ink is very strong). Glare and moire on a screen photo no longer create rows to fill in.
+- A "1" written like a slash: "/" is read as 1 in number boxes, "//2" or "/2" as 1/2, "11/2" as 1 1/2, always as a GUESS that you confirm (yellow, never "reliable").
+- Live check on the popup: weight and height are compared with the age while you confirm. An implausible pair (like 6.4 kg at 24 months) blocks "Konfirmasi" until you change the value or tick "Nilai ini memang benar".
+- Malaria type must be chosen (or "tidak diketahui") when a DHP or primaquine row exists.
+- Found while testing: 1 1/2 written without a space ("11/2") was never read; fixed.

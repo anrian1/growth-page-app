@@ -23,11 +23,21 @@ export function parseMrn(text) {
 export function parseTabletsBox(text) {
   const raw = String(text ?? '').trim();
   if (raw === '') return { value: null, substituted: false, note: null };
-  const s = normalise(raw).replace(/\s*\/\s*/g, '/').replace(/[^0-9/. ]/g, (c) => (c === 'x' || c === ' ' ? ' ' : '')).replace(/\s+/g, ' ').trim();
+  // a "1" without a flag looks like a slash or a bar: "/", "//2", "|/2", "1//2" (and "1/z" for 1/2). A guess, never reliable.
+  const w = raw.replace(/[\\|!]/g, '/').replace(/\/{2,}/g, '/').replace(/\/\s*[zZ]\b/, '/2').trim();
+  let slashFix = w !== raw;
+  if (w === '/') return { value: '1', substituted: true, note: null };
+  const src = /^\/\s*[234]$/.test(w) ? `1${w}` : w;
+  if (src !== w) slashFix = true;
+  // "11/2" is 1 1/2 written without the space (a guess, never reliable)
+  const lost = /^1(\d)\/(\d)$/.exec(src);
+  const src2 = lost && Number(lost[1]) < Number(lost[2]) ? `1 ${lost[1]}/${lost[2]}` : src;
+  if (src2 !== src) slashFix = true;
+  const s = normalise(src2).replace(/\s*\/\s*/g, '/').replace(/[^0-9/. ]/g, (c) => (c === 'x' || c === ' ' ? ' ' : '')).replace(/\s+/g, ' ').trim();
   const t = toTablets(s);
   if (t.value === null) return { value: null, substituted: false, note: `${raw}: not an amount on the tablet list` };
   const letters = /[a-wyzA-WYZ]/.test(raw.replace(/tab\w*/gi, ''));
-  return { value: t.value, substituted: letters, note: null };
+  return { value: t.value, substituted: letters || slashFix, note: null };
 }
 
 export const FIELD_PARSERS = { mrn: parseMrn, tablets: parseTabletsBox };

@@ -64,6 +64,71 @@ describe('form v4: photo -> popup -> result -> save', () => {
     expect((await allRecords()).find((r) => r.mrn === '00123499').malaria.dhpTimes).toBe(2);
   });
 
+  it('screen glare on blank rows does NOT create rows to fill in: no drug choice is asked for them', async () => {
+    script.values = { mrn: '00123470' }; script.noise = new Set(['rx4Name', 'rx4Amt', 'rx5Days']);
+    await photoToPopup();
+    expect($('rx4-drug').value).toBe(''); expect($('rx5-drug').value).toBe('');
+    expect($('overlay').textContent).toContain('Baris kosong (2)');
+    await confirmToResult();
+    expect($('result').hidden).toBe(false);                                                        // confirmed without choosing anything for rows 4 and 5
+    $('checked') && ($('checked').checked = true); $('save').click(); await tick(60);
+  });
+
+  it('a row with strong ink but nothing readable is kept: the drug must be chosen, never dropped silently', async () => {
+    script.values = { mrn: '00123471' }; script.strong = new Set(['rx4Name']); script.blank.add('rx4Name');
+    await photoToPopup();
+    expect($('rx4-drug').value).toBe('?');
+    confirmAll(); $('c-ok').click(); await tick(30);
+    expect($('confirm-error').textContent).toContain('Baris 4: pilih obatnya');
+    $('c-retake').click();
+  });
+
+  it('a "1" written like a slash is read as a guess to confirm: the boxes are pre-filled, flagged, and the dose check still works', async () => {
+    script.values = { mrn: '00123472', rx1Freq: '/', rx1Amt: '//2' };
+    await photoToPopup();
+    expect($('f-rx1Freq').value).toBe('1'); expect($('f-rx1Amt').value).toBe('1/2');
+    expect($('overlay').textContent).toContain('bacaan kurang yakin');                             // shown as "check", not as reliable
+    await confirmToResult();
+    expect($('ma-out').textContent).toContain('Sesuai dengan tabel pedoman');
+    $('checked') && ($('checked').checked = true); $('save').click(); await tick(60);
+  });
+
+  it('weight and height that do not fit the age are caught on the popup itself (the C09 case: 6.4 kg at 24 months) and need an explicit tick', async () => {
+    script.values = { mrn: '00123473', dobD: '4', dobM: '10', dobY: '2024', weight: '6.4', height: '85.5' };
+    await photoToPopup();
+    expect($('rc-plausibility').textContent).toContain('tidak sesuai untuk umur 2 tahun'); expect($('rc-plausibility').textContent).toContain('Periksa berat dan tinggi di kertas');
+    expect($('c-plaus')).not.toBeNull();
+    confirmAll(); $('c-ok').click(); await tick(30);
+    expect($('confirm-error').textContent).toContain('Nilai ini memang benar');
+    expect($('overlay').hidden).toBe(false);
+    setVal('f-weight', '11,1');                                                                    // the person corrects the weight from the paper: the warning goes away at once
+    expect($('rc-plausibility').textContent).toBe(''); expect($('c-plaus')).toBeNull();
+    $('c-ok').click(); await tick(60);
+    expect($('result').hidden).toBe(false);
+    $('checked') && ($('checked').checked = true); $('save').click(); await tick(60);
+  });
+
+  it('a person can also confirm an unusual weight on purpose (the tick), and the dose check then refuses to run on it', async () => {
+    script.values = { mrn: '00123474', dobD: '4', dobM: '10', dobY: '2024', weight: '6.4', height: '85.5' };
+    await photoToPopup(); confirmAll(); $('c-plaus').checked = true; $('c-ok').click(); await tick(60);
+    expect($('result').hidden).toBe(false);
+    expect($('result').textContent).toContain('Periksa dulu');
+    expect($('ma-out').textContent).toContain('tidak pasti');
+    $('checked') && ($('checked').checked = true); $('save').click(); await tick(60);
+  });
+
+  it('the malaria type must be chosen when a DHP or primaquine row exists ("tidak diketahui" is allowed)', async () => {
+    script.values = { mrn: '00123475' }; script.assess = '';
+    await photoToPopup();
+    expect($('rx-species').value).toBe(''); expect($('overlay').textContent).toContain('Jenis malaria belum terbaca');
+    confirmAll(); $('c-ok').click(); await tick(30);
+    expect($('confirm-error').textContent).toContain('Pilih jenis malaria');
+    choose('rx-species', 'unknown'); $('c-ok').click(); await tick(60);
+    expect($('result').hidden).toBe(false);
+    expect($('ma-out').textContent).toContain('Tidak dapat diperiksa');
+    $('checked') && ($('checked').checked = true); $('save').click(); await tick(60);
+  });
+
   it('a wrong dose is flagged: DHP 1 tablet once a day for 8 kg (table: 1/2)', async () => {
     script.values = { mrn: '00123498', rx1Amt: '1' };
     await photoToPopup(); await confirmToResult();

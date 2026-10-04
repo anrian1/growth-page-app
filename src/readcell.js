@@ -1,6 +1,6 @@
 // Reads ONE handwritten cell, several times, and decides how far to trust the result.
 // Everything here is plain code (no browser needed), so it can be tested without a camera.
-import { analyseNumber } from './ocr-helpers.js';
+import { analyseNumber, slashAsOne } from './ocr-helpers.js';
 import { TEMPLATE, kindOfColumn } from './template.js';
 
 export const INK_MIN = 0.012;          // UPDATE ME after real photos: share of dark pixels that counts as "something is written"
@@ -61,7 +61,8 @@ export function voteReadings(readings, spec) {
   const integerOnly = typeof spec !== 'string' && spec.integer === true;      // dates: a decimal point means a misreading
   const analysed = readings.map((r) => {
     if (parse) { const p = parse(r.text); return { ...r, value: p.value, substituted: !!p.substituted, hadSpace: false, note: p.note }; }
-    const a = analyseNumber(r.text, { loose: true });
+    const sl = slashAsOne(r.text);
+    const a = analyseNumber(sl.text, { loose: true });
     let value = a.value; let note = null; let repaired = false;
     if (value !== null && integerOnly && !Number.isInteger(value)) { note = `${r.text} is not a whole number`; value = null; }
     if (value !== null && (value < lo || value > hi)) { note = `${r.text} is outside ${lo}-${hi}`; value = null; }
@@ -71,7 +72,7 @@ export function voteReadings(readings, spec) {
       const digits = String(r.text).replace(/\D/g, '');
       if (digits.length >= 3) { const v = Number(digits) / 10; if (v >= lo && v <= hi) { value = v; repaired = true; note = `${r.text}: decimal point restored`; } }
     }
-    return { ...r, value, substituted: a.substituted || repaired, hadSpace: a.hadSpace, note };
+    return { ...r, value, substituted: a.substituted || repaired || sl.changed, hadSpace: a.hadSpace, note };
   });
   const groups = [];
   for (const a of analysed) {

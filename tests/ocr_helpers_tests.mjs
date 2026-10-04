@@ -1,4 +1,4 @@
-import { toNumber, analyseNumber, matchTruth, parseExpected } from '../src/ocr-helpers.js';
+import { slashAsOne, toNumber, analyseNumber, matchTruth, parseExpected } from '../src/ocr-helpers.js';
 let failures = 0; let pass = 0;
 const eq = (name, got, want) => { if (JSON.stringify(got) === JSON.stringify(want)) pass += 1; else { failures += 1; console.log(`FAIL  ${name}: got ${JSON.stringify(got)}, expected ${JSON.stringify(want)}`); } };
 
@@ -25,6 +25,13 @@ eq('loose: ZOZS is read as 2025, and marked as a guess', [analyseNumber('ZOZS', 
 eq('loose: a lone S is 5, marked as a guess', [analyseNumber('S', { loose: true }).value, analyseNumber('S', { loose: true }).substituted], [5, true]);
 eq('loose: ordinary words are still rejected', analyseNumber('Berat', { loose: true }).value, null);
 eq('loose: a clean number is not marked as a guess', analyseNumber('2025', { loose: true }).substituted, false);
+
+// a "1" without a flag comes back as a slash
+eq('slash: a lone slash is 1, flagged as a change', [slashAsOne('/').text, slashAsOne('/').changed], ['1', true]);
+eq('slash: "//" and "!" are 1 as well', [slashAsOne('//').text, slashAsOne('!').text], ['1', '1']);
+eq('slash at the start or end of a short number', [slashAsOne('/2').text, slashAsOne('3/').text], ['12', '31']);
+eq('a slash in the middle is left alone (36/5 is not 3615)', [slashAsOne('36/5').text, slashAsOne('36/5').changed], ['36/5', false]);
+eq('plain numbers and empty text are untouched', [slashAsOne('12').changed, slashAsOne('').changed], [false, false]);
 
 console.log(`OCR helpers: ${pass} passed${failures ? `, ${failures} FAILED` : ''}`);
 process.exit(failures ? 1 : 0);
