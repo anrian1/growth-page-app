@@ -10,8 +10,11 @@ import { loadMalariaPack, checkRegimen, TABLET_OPTIONS } from './malaria.js';
 import { ROW_NUMBERS, assembleRx, tabletsPerDay } from './rxrows.js';
 import { makeDate, checkAge } from './recorddate.js';
 import { checkRecordValues } from './recordchecks.js';
+import { initI18n, bindLangToggle, t } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
+initI18n();                                                                   // English mode: translates the page and everything drawn later
+bindLangToggle({ needsConfirm: () => !$('overlay').hidden || !$('result').hidden });
 const APP_VERSION = typeof __APP_VERSION__ === 'string' ? __APP_VERSION__ : 'dev';
 const pad = (n) => String(n).padStart(2, '0');
 const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
@@ -47,7 +50,7 @@ const cleanMrn = (t) => String(t ?? '').replace(/[\s\-.]/g, '');
 let session = null;    // the photo that was read
 let row = null;        // what was read from it
 let current = null;    // a result waiting to be saved
-let initialRxSig = ''; // the prescription as the app pre-filled it, to tell whether a person changed it
+let initialRx = {};   // the prescription as the app pre-filled it, to tell which fields a person changed
 let malariaInfo = { ok: false, absent: true, errors: [] };   // the malaria dose pack (public/guidelines/malaria-dose.json)
 loadMalariaPack(typeof fetch === 'function' ? fetch : async () => ({ ok: false })).then((r) => { malariaInfo = r; });
 
@@ -134,7 +137,7 @@ function openConfirm() {
   for (const r of ROW_NUMBERS) { for (const id of [`f-rx${r}Amt`, `f-rx${r}Freq`]) { $(id).addEventListener('input', () => refreshRow(r)); $(id).addEventListener('change', () => refreshRow(r)); } refreshRow(r); }
   overlay.querySelectorAll('[data-fill]').forEach((b) => b.addEventListener('click', () => { const m = /^rx(\d)/.exec(b.dataset.fill); if (m) refreshRow(Number(m[1])); }));
   updateAge();
-  initialRxSig = rxSignature();
+  initialRx = rxState();
   $('c-ok').addEventListener('click', confirmValues);
   $('c-retake').addEventListener('click', closeConfirm);
 }
@@ -154,10 +157,15 @@ const leastCertain = (list) => list.filter(Boolean).reduce((w, s) => (SOURCE_RAN
 function readRows() {
   return ROW_NUMBERS.map((r) => ({ n: r, drug: $(`rx${r}-drug`).value, amount: $(`f-rx${r}Amt`).value || null, freq: intOrNull($(`f-rx${r}Freq`).value), days: intOrNull($(`f-rx${r}Days`).value), dispersible: row.rows[r - 1].dispersible }));
 }
-function rxSignature() {
+/** Every prescription field in the popup, by a stable name (row1-drug, row1-amount, row1-times, row1-days ... species, test, type, form, artesunate-mg). */
+function rxState() {
   const v = (id) => ($(id) ? $(id).value : '');
-  return JSON.stringify([readRows().map((x) => [x.drug, x.amount, x.freq, x.days]), v('rx-species'), v('rx-test'), v('rx-type'), v('rx-form'), v('rx-art-mg')]);
+  const o = { species: v('rx-species'), test: v('rx-test'), type: v('rx-type'), form: v('rx-form'), 'artesunate-mg': v('rx-art-mg') };
+  for (const x of readRows()) { o[`row${x.n}-drug`] = x.drug; o[`row${x.n}-amount`] = x.amount ?? ''; o[`row${x.n}-times`] = x.freq ?? ''; o[`row${x.n}-days`] = x.days ?? ''; }
+  return o;
 }
+/** Names of the prescription fields a person changed after the app pre-filled them (evidence of what the reader gets wrong). */
+const rxEditedFields = () => { const now = rxState(); return Object.keys(now).filter((k) => String(now[k]) !== String(initialRx[k] ?? '')); };
 /** The prescription as it stands in the popup: { species, test, type, form, dhpTablets (per DAY), dhpDays, dhpTimes, pqTablets, pqDays, artesunateMg, notes, conflicts } */
 function readRxFromPopup() {
   const v = (id) => ($(id) ? $(id).value : '');
@@ -199,7 +207,8 @@ function confirmValues() {
   if (readRows().some((x) => x.drug === 'dhp' || x.drug === 'pq') && rx.type === 'uncomplicated' && !rx.species) { show('confirm-error', 'Pilih jenis malaria (atau "tidak diketahui") agar dosis bisa diperiksa.'); return; }
   const autoAny = row.rows.some((x) => !x.empty && ['dhp', 'pq', 'art'].includes(x.name.drug)) || ['species', 'testResult', 'artesunateMg'].some((k) => row.rx.fields[k].value !== null);
   if (autoAny && !($('c-rx-check') && $('c-rx-check').checked)) { show('confirm-error', 'Centang "Sesuai tulisan" setelah membandingkan nama obat, angka dan diagnosis dengan gambarnya.'); return; }
-  const unchanged = rxSignature() === initialRxSig;
+  const rxEdited = rxEditedFields();
+  const unchanged = rxEdited.length === 0;
   const rxSource = !rxHasContent(rx) ? 'not_recorded' : !autoAny ? 'typed' : unchanged ? 'photo_confirmed' : 'photo_edited';
   const sources = {};
   for (const k of VITALS) sources[k] = sourceOf(row.cells[k], values[k]);
@@ -209,7 +218,7 @@ function confirmValues() {
   sources.sex = sex === row.sex.sex ? (row.sex.status === 'ok' ? 'photo_ok' : 'photo_checked') : row.sex.sex === null ? 'photo_chosen' : 'photo_edited';
   const ocr = { sexStatus: row.sex.status, cells: Object.fromEntries(Object.entries(row.cells).map(([k, c]) => [k, k === 'mrn' ? { status: c.status } : { status: c.status, value: c.value, candidates: c.candidates }])) };
   closeConfirm();
-  showResult({ sex, mrn, dob, visit, age, values, sources, ocr, rx, rxSource, rxFromPhoto: autoAny });
+  showResult({ sex, mrn, dob, visit, age, values, sources, ocr, rx, rxSource, rxFromPhoto: autoAny, rxEdited: rxSource === 'photo_edited' ? rxEdited : [] });
 }
 
 // ---------------------------------------------------------------- manual entry (no photo)
@@ -236,7 +245,7 @@ $('manual-go').addEventListener('click', () => {
 });
 
 // ---------------------------------------------------------------- result
-async function showResult({ sex, mrn, dob, visit, age, values, sources, ocr, rx, rxSource, rxFromPhoto }) {
+async function showResult({ sex, mrn, dob, visit, age, values, sources, ocr, rx, rxSource, rxFromPhoto, rxEdited = [] }) {
   const ranges = Object.fromEntries(VITALS.map((k) => [k, MEDREC.fields[k].range]));
   const rc = checkRecordValues(values, ranges);
   const nutrition = age.scope === 'nutrition' ? assess({ sex, ageMonths: age.ageMonths, weightKg: values.weight, lengthCm: values.height }) : null;
@@ -254,7 +263,7 @@ async function showResult({ sex, mrn, dob, visit, age, values, sources, ocr, rx,
   current = {
     sex, mrn, ageMonths: age.ageMonths, ageYears: age.ageYears, ageText: age.ageText, scope: age.scope, visit: ddmmyyyy(visit.iso), visitIso: visit.iso, dobIso: dob.iso,
     values, weightKg: values.weight, weightUncertain: !!(nutrition && nutrition.action === 'FLAG_CONFIRM'), bbpbCategory: nutrition ? nutrition.category.bbpb : null,
-    sources, ocr, nutrition, flags, mustCheck, malaria: null, rx: pre, rxUsed: !!(pre && rxFromPhoto), rxSource, code: '',
+    sources, ocr, nutrition, flags, mustCheck, malaria: null, rx: pre, rxUsed: !!(pre && rxFromPhoto), rxSource, rxEdited, code: '',
   };
   $('result').innerHTML = renderRecordResult(current, malariaInfo);
   $('result').hidden = false;
@@ -294,7 +303,7 @@ async function saveCurrent() {
   const id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
   await addRecord({
     id, type: 'record', mrn: current.mrn, visitDate: current.visitIso, dob: current.dobIso, sex: current.sex, ageMonths: current.ageMonths,
-    values: current.values, sources: current.sources, ocr: current.ocr, rxSource: current.rxSource,
+    values: current.values, sources: current.sources, ocr: current.ocr, rxSource: current.rxSource, rxEdited: current.rxEdited || [],
     nutrition: n ? { status: n.action, z: n.zRounded, category: n.category } : { status: current.scope === 'dose-only' ? 'not_calculated_5_18y' : 'not_calculated' },
     flags: current.flags, malaria: current.malaria, appVersion: APP_VERSION, createdAt: new Date().toISOString(), exportedAt: null, analysisExportedAt: null,
   });
@@ -344,7 +353,7 @@ $('export-link').addEventListener('click', () => exportRecords('link', true));
 $('export-analysis').addEventListener('click', () => exportRecords('analysis', true));
 $('export-all').addEventListener('click', () => exportRecords('both', false));
 $('delete-all').addEventListener('click', async () => {
-  if (!window.confirm('Hapus SEMUA data di HP ini? Ini tidak bisa dibatalkan. Ekspor dulu jika perlu.')) return;
+  if (!window.confirm(t('Hapus SEMUA data di HP ini? Ini tidak bisa dibatalkan. Ekspor dulu jika perlu.'))) return;
   await clearAll();
   await refreshRecords();
 });

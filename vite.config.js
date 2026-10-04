@@ -29,7 +29,7 @@ export default defineConfig({
       manifest: {
         name: 'HONAI',
         short_name: 'HONAI',
-        description: 'HONAI: rekam medis kertas menjadi data, status gizi dan pemeriksaan dosis malaria. Bekerja tanpa internet.',
+        description: 'HONAI: Bridging Informasi Kesehatan dan Dukungan Keputusan Klinis Berbasis AI. Bekerja tanpa internet.',
         lang: 'id',
         theme_color: '#1b6b4f',
         background_color: '#ffffff',

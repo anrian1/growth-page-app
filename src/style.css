@@ -1,9 +1,15 @@
 :root { --green: #1b6b4f; --ink: #1d2a24; --muted: #5d6b64; --line: #d5ded9; --bg: #f6f9f7; --amber: #8a5a00; --amber-bg: #fff4d6; --red: #8f1d1d; }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.45; padding-bottom: env(safe-area-inset-bottom); }
-header { background: var(--green); color: #fff; padding: calc(14px + env(safe-area-inset-top)) 16px 14px; }
+header { background: var(--green); color: #fff; padding: calc(14px + env(safe-area-inset-top)) 16px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.logo { width: 40px; height: 40px; flex: none; background: #fff; border-radius: 9px; padding: 3px; box-sizing: border-box; }
+.brand-text { min-width: 0; }
+.lang { display: flex; flex: none; border: 1px solid rgba(255,255,255,.75); border-radius: 8px; overflow: hidden; }
+.lang button { background: transparent; color: #fff; border: 0; padding: 6px 10px; min-height: 36px; font-weight: 700; cursor: pointer; }
+.lang button.on { background: #fff; color: var(--green); }
 h1 { margin: 0; font-size: 1.4rem; }
-.sub { margin: 2px 0 0; opacity: .9; font-size: .9rem; }
+.sub { margin: 2px 0 0; opacity: .9; font-size: .8rem; line-height: 1.25; }
 h2 { font-size: 1.1rem; margin: 0 0 10px; }
 main { padding: 12px 14px 24px; max-width: 640px; margin: 0 auto; }
 section { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 14px; }

@@ -49,7 +49,7 @@ describe('form v4: photo -> popup -> result -> save', () => {
     if ($('checked')) $('checked').checked = true;
     $('save').click(); await tick(80);
     const [rec] = await allRecords();
-    expect(rec.type).toBe('record'); expect(rec.mrn).toBe('00123456'); expect(rec.rxSource).toBe('photo_confirmed'); expect(rec.malaria.status).toBe('match'); expect(rec.malaria.dhpTimes).toBe(1);
+    expect(rec.type).toBe('record'); expect(rec.mrn).toBe('00123456'); expect(rec.rxSource).toBe('photo_confirmed'); expect(rec.rxEdited).toEqual([]); expect(rec.malaria.status).toBe('match'); expect(rec.malaria.dhpTimes).toBe(1);
     expect(rec.sources.mrn).toBe('photo_ok'); expect(rec.sources.sex).toBe('photo_ok');
     expect(JSON.stringify(rec)).not.toMatch(/Paracetamol/i);                                       // the handwriting text of the other drugs is not saved
   });
@@ -242,5 +242,22 @@ describe('form v4: photo -> popup -> result -> save', () => {
   it('deletes everything on the phone after confirmation', async () => {
     $('delete-all').click(); await tick(60);
     expect(await allRecords()).toHaveLength(0); expect($('records-summary').textContent).toBe('Belum ada data.');
+  });
+
+  it('records WHICH prescription fields a person changed, in both export files (evidence of what the reader gets wrong)', async () => {
+    script.values = { mrn: '00123480' };
+    await photoToPopup();
+    setVal('f-rx1Days', '5'); choose('rx-species', 'vivax');
+    await confirmToResult();
+    $('checked') && ($('checked').checked = true); $('save').click(); await tick(60);
+    const rec = (await allRecords()).find((r) => r.mrn === '00123480');
+    expect(rec.rxSource).toBe('photo_edited'); expect([...rec.rxEdited].sort()).toEqual(['row1-days', 'species']);
+    for (const [button, mrnText] of [['export-link', '00-1234-80'], ['export-analysis', null]]) {
+      downloaded.length = 0; $(button).click(); await tick(100);
+      const lines = (await readBlob(downloaded[0])).split('\r\n').filter(Boolean);
+      const col = lines[0].split(',').indexOf('rx_edited_fields'); expect(col).toBeGreaterThan(-1);
+      const withEdits = lines.slice(1).filter((l) => l.includes('species | row1-days') || l.includes('row1-days | species'));
+      expect(withEdits.length).toBe(1); if (mrnText) expect(withEdits[0]).toContain(mrnText);
+    }
   });
 });

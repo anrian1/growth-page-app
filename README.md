@@ -1,6 +1,67 @@
-# HONAI: Health Information Bridge and Clinical Decision Support AI
+# HONAI
 
-An offline-first web app (PWA) for puskesmas. A health worker photographs a handwritten paper medical record; the app reads the numbers **on the phone**, shows each
+*AI-based health information bridging and clinical decision support*
+
+**Health Information Bridge and Clinical Decision Support AI**: a phone tool that reads handwritten clinical records offline and checks them against a reviewed guideline, with a person in charge of every decision.
+Built for the Hack-Nation x World Bank Small AI for Development hackathon 2026 (health track), by one person. Referral code: WBGSmallAIGADS.
+
+**Designed for any clinic and, by design, any disease. Piloted on two: child nutritional status and malaria dosing, using Indonesian data and guidelines.** Only these two are implemented.
+
+> **Because of HONAI, a primary-care nurse or doctor will turn a handwritten medical record into a checked nutritional status and a guideline dose check in seconds, at the bedside, with no signal, that they would otherwise leave on paper or re-type late. We know because on `[UPDATE: N]` test pages the app read `[UPDATE: x of y]` values correctly and flagged the one it could not be sure of.**
+
+**Try it:** `[UPDATE: demo URL]` · in English: `[UPDATE: demo URL]?lang=en` · the **ID | EN** button in the header switches at any time.
+
+![A synthetic test page, photographed from a tablet screen](docs/sample-synthetic-photo-v3.jpg)
+
+## The problem
+A child's malaria dose depends on weight, and weight and nutritional status are written by hand on a paper record. Malaria caused an estimated 597,000 deaths worldwide in 2023, mostly children under five (WHO). In Indonesia, the pilot country, there were 706,297 malaria cases in 2025 and about 1 in 5 children under five were stunted in 2023 (Kemenkes). Health facilities in Indonesia were required to go electronic by the end of 2023, yet small studies still describe double recording, manual records kept alive because the local system fails, and network and training gaps. Sources and the gaps in them: [docs/DATA_CARD.md](docs/DATA_CARD.md).
+
+## What it does (one photo)
+1. **Photograph** the handwritten record on a phone. It works offline, in airplane mode.
+2. **A small OCR model reads the boxes on the phone** (record number, sex tick, dates, vitals, five prescription rows). Each box is read four times and the readings are voted.
+3. **A person confirms**, with a picture of the handwriting beside every reading. Doubtful values are yellow, disagreeing readings are left blank with candidates to choose from, and weight and height are checked against age while confirming.
+4. **Nutritional status** (WHO 2006 standards, Indonesian categories, 0 to 59 months).
+5. **Malaria dose check** against the Indonesian national pocketbook. Result: "matches", "differs", or "cannot check, ask a doctor". Every finding quotes the page, section and exact sentence.
+6. **Save and export** two CSV files: a link file (record number and date of birth, for the clinic) and an analysis file (neither, for sharing). The patient's name never leaves the paper.
+
+## Why AI, and why not a spreadsheet
+A spreadsheet can store a record but cannot read it off paper, so the record is re-typed or not typed. The AI does **one thing**: it reads handwriting, on the device, from a download of 49.6 MB. Everything after reading is plain, checkable rules: WHO tables and a guideline pack with exact quotes. There is no generated text, so nothing is made up.
+
+## Guardrails (human in the loop, not-sure fail-safe)
+- A person confirms every value and the prescription. The tool never acts on its own.
+- A value is "reliable" only when at least 3 of 4 independent readings agree. Otherwise no value is filled in.
+- Not sure means ask a person: unreadable drug names must be chosen, an unusual weight blocks confirmation until checked, an uncertain weight stops the dose check, a malaria type that cannot be read must be chosen or marked unknown, and a pack missing any citation refuses to load.
+- The guideline pack is labelled **DRAFT** on screen until a clinician has reviewed every line.
+- Name, address, phone and BPJS number are discarded at read time and cannot be exported (a test plants fake names and fails if any appears).
+
+## Evidence (honest)
+| Level | What | Result |
+|---|---|---|
+| Logic | More than 1,000 automated checks, including the WHO tables against an independent library (356 cross-checks, 33 boundaries) and 75 dose-check tests | All pass (`npm test`) |
+| Real phone, real browser model | `[UPDATE: N]` pages of invented children, written on a tablet, photographed from the screen | `[UPDATE: x of y]` values correct, no value shown as reliable was wrong, the one wrong value was flagged |
+| Synthetic photos (form v3) | 21 invented pages, handwriting-style fonts, read by a different OCR engine | Regression evidence only. See "Technical README" |
+| Speed and size | One phone | Ready offline in 19 s, photo to confirmation 7 s (form v3 build), 49.6 MB one-time download. `[UPDATE: v4 timing]` |
+
+## Limits (read these)
+**Only two diseases are implemented**, and only one country's guidelines. All children are invented and the writer is the developer: not real patients, not real paper, few handwritings. Nutritional status covers 0 to 59 months only. The dose check covers DHP, primaquine and artesunate only, and a match is not proof that a dose is right. The malaria tables are a draft until reviewed. The record number is typed by a person when it is not read reliably. The photo stays in the phone gallery until deleted. Full list: [docs/DATA_CARD.md](docs/DATA_CARD.md).
+
+## Local language
+Every screen is in **Bahasa Indonesia** by default (for clinic staff) and has an **English switch** (ID | EN button, or `?lang=en`). The guideline quotes stay in the original Indonesian, labelled as such, and the CSV exports are identical in both languages. How it would fare in a less-supported language: reading digits and Latin-script drug names does not depend on the spoken language, and a language is one dictionary (English took about 359 entries, with tests that list any untranslated string). The English nutrition and dose wording needs a doctor's review: [docs/EN_MEDICAL_REVIEW.md](docs/EN_MEDICAL_REVIEW.md). Voice is not built. See [docs/JUDGE_QA.md](docs/JUDGE_QA.md).
+
+## Reuse and what happens next
+To add a disease: a reviewed guideline pack; for threshold-style rules the repository has a rule language that cannot run code (built and tested, not yet wired to the screen); for table-based dosing, a small checker module as for malaria. A form template generator makes a second form a description, not new reading code. Next: a consented pilot, a multi-writer timing test against typing, a barcode sticker for the record number, WHO 2007 tables for ages 5 to 18, a second guideline pack to prove the any-disease design, then other languages and voice.
+
+## Tech stack
+Vite PWA, vanilla JavaScript, IndexedDB. PaddleOCR PP-OCR models through `ppu-paddle-ocr` and ONNX Runtime Web (WASM). WHO LMS tables. Guideline pack as JSON built from the pocketbook text. Vitest. Deployed on Vercel.
+
+## Documents
+[Data card](docs/DATA_CARD.md) · [Video script](docs/VIDEO_SCRIPT.md) · [Judge Q&A](docs/JUDGE_QA.md) · [English wording review](docs/EN_MEDICAL_REVIEW.md) · [Technical README](#technical-readme)
+
+---
+
+## Technical README
+
+An offline-first web app (PWA) for primary-care clinics (in the pilot, Indonesian puskesmas). A health worker photographs a handwritten paper medical record; the app reads the numbers **on the phone**, shows each
 number next to a picture of the handwriting for a person to confirm, then:
 
 1. computes the child's **nutritional status** (WHO 2006 standards, Permenkes 2/2020 categories, 0–59 months),

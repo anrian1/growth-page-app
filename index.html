@@ -7,12 +7,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="HONAI" />
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
   <title>HONAI</title>
 </head>
 <body>
   <header>
-    <h1>HONAI</h1>
-    <p class="sub">Rekam medis kertas &rarr; data, status gizi, pemeriksaan dosis malaria</p>
+    <div class="brand">
+      <img class="logo" src="/icons/logo-header.png" alt="" width="40" height="40" />
+      <div class="brand-text"><h1>HONAI</h1><p class="sub">Bridging Informasi Kesehatan dan Dukungan Keputusan Klinis Berbasis AI</p></div>
+    </div>
+    <div class="lang" role="group" aria-label="Bahasa / Language"><button id="lang-id" type="button" aria-pressed="true">ID</button><button id="lang-en" type="button" aria-pressed="false">EN</button></div>
   </header>
 
   <div id="status" class="banner wait" role="status">Menyiapkan mode offline&hellip;</div>

@@ -5,7 +5,7 @@ const check = (name, ok, detail = '') => { if (ok) pass += 1; else { failures +=
 const rec = { id: 'abc-1', mrn: '00123456', dob: '2025-03-14', visitDate: '2026-10-04', sex: 'L', ageMonths: 18, values: { sys: 90, dia: 55, hr: 120, rr: 30, temp: 38.5, height: 80, weight: 10.2 },
   sources: { sex: 'photo_ok', dob: 'photo_checked', visit: 'photo_ok', mrn: 'photo_edited', weight: 'photo_ok' }, nutrition: { status: 'SCORE', z: { bbu: -0.3, pbu: 0.1, bbpb: -0.4 }, category: { bbu: 'Berat badan normal', pbu: 'Normal', bbpb: 'Gizi baik' } },
   malaria: { status: 'differs', species: 'falciparum', formulation: 'standard', dhpTablets: '1', dhpDays: 3, pqTablets: '1/4', pqDays: 1, findings: [{ id: 'dhp-differs', level: 'check' }, { id: 'empty-stomach', level: 'info' }], packId: 'malaria-dose-kemenkes-bukusaku', packDraft: true },
-  rxSource: 'photo_confirmed', flags: ['a flag, with a comma'], appVersion: 'x' };
+  rxSource: 'photo_confirmed', rxEdited: ['species', 'row1-days'], flags: ['a flag, with a comma'], appVersion: 'x' };
 const link = toLinkCsv([rec], { exportedAt: 'T' }).split('\r\n'); const ana = toAnalysisCsv([rec], { exportedAt: 'T' }).split('\r\n');
 const lh = link[0].split(','); const ah = ana[0].split(',');
 check('the link file has exactly the approved columns', JSON.stringify(lh) === JSON.stringify(LINK_COLUMNS) && lh.slice(0, 3).join() === 'mrn,dob,visit_date');
@@ -16,6 +16,7 @@ check('the analysis file has NO mrn and NO dob and no exact visit date', !ah.inc
 check('the analysis file keeps the visit MONTH only', ana[1].split(',')[0] === '2026-10');
 check('the link file has the MRN as 00-1234-56 (leading zeros survive a spreadsheet) and the dob as text', link[1].startsWith('00-1234-56,2025-03-14,2026-10-04,'), link[1].slice(0, 40));
 check('MRN formatting: 8 digits only, anything else is left as is', formatMrn('00123456') === '00-1234-56' && formatMrn('1234') === '1234' && formatMrn(null) === '');
+check('both files carry which prescription fields were changed', link[1].includes('species | row1-days') && ana[1].includes('species | row1-days') && lh.includes('rx_edited_fields') && ah.includes('rx_edited_fields'));
 check('both files carry how each value was obtained and the prescription source', link[1].includes('photo_edited') && link[1].includes('photo_confirmed') && ana[1].includes('photo_confirmed'));
 check('a comma inside a value is quoted, rows stay aligned', link[1].includes('"a flag, with a comma"') && link[1].split(',').length > lh.length);
 check('the dose findings exported are the ones that differed, with the DRAFT mark', link[1].includes('dhp-differs') && !link[1].includes('empty-stomach') && link[1].includes('(draft)'));

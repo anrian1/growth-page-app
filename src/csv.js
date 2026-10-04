@@ -71,7 +71,7 @@ const SHARED_COLUMNS = [
   'record_id', 'sex', 'age_months', 'sys', 'dia', 'hr', 'rr', 'temp_c', 'height_cm', 'weight_kg',
   'sex_source', 'dob_source', 'visit_date_source', 'mrn_source', 'sys_source', 'dia_source', 'hr_source', 'rr_source', 'temp_source', 'height_source', 'weight_source',
   'z_bbu', 'z_pbu', 'z_bbpb', 'cat_bbu', 'cat_pbu', 'cat_bbpb', 'nutrition_status',
-  'malaria_status', 'malaria_species', 'malaria_form', 'dhp_tabs_day', 'dhp_days', 'dhp_times_day', 'pq_tabs_day', 'pq_days', 'artesunate_mg', 'g6pd', 'pregnancy', 'malaria_findings', 'malaria_pack', 'rx_source',
+  'malaria_status', 'malaria_species', 'malaria_form', 'dhp_tabs_day', 'dhp_days', 'dhp_times_day', 'pq_tabs_day', 'pq_days', 'artesunate_mg', 'g6pd', 'pregnancy', 'malaria_findings', 'malaria_pack', 'rx_source', 'rx_edited_fields',
   'flags', 'app_version', 'exported_at',
 ];
 export const LINK_COLUMNS = ['mrn', 'dob', 'visit_date', ...SHARED_COLUMNS];
@@ -88,7 +88,7 @@ function recordRow(r, exportedAt) {
     z_bbu: n.z?.bbu ?? '', z_pbu: n.z?.pbu ?? '', z_bbpb: n.z?.bbpb ?? '', cat_bbu: n.category?.bbu ?? '', cat_pbu: n.category?.pbu ?? '', cat_bbpb: n.category?.bbpb ?? '', nutrition_status: n.status ?? '',
     malaria_status: m ? m.status : 'not_checked', malaria_species: m ? m.species ?? '' : '', malaria_form: m ? m.formulation ?? '' : '', dhp_tabs_day: m ? m.dhpTablets ?? '' : '', dhp_days: m ? m.dhpDays ?? '' : '', dhp_times_day: m ? m.dhpTimes ?? '' : '',
     pq_tabs_day: m ? m.pqTablets ?? '' : '', pq_days: m ? m.pqDays ?? '' : '', artesunate_mg: m ? m.artesunateMg ?? '' : '', g6pd: m ? m.g6pd ?? '' : '', pregnancy: m ? m.pregnancy ?? '' : '',
-    malaria_findings: m ? (m.findings || []).filter((f) => f.level === 'check').map((f) => f.id).join(' | ') : '', malaria_pack: m ? `${m.packId}${m.packDraft ? ' (draft)' : ' (reviewed)'}` : '', rx_source: r.rxSource ?? '',
+    malaria_findings: m ? (m.findings || []).filter((f) => f.level === 'check').map((f) => f.id).join(' | ') : '', malaria_pack: m ? `${m.packId}${m.packDraft ? ' (draft)' : ' (reviewed)'}` : '', rx_source: r.rxSource ?? '', rx_edited_fields: (r.rxEdited || []).join(' | '),
     flags: (r.flags || []).join(' | '), app_version: r.appVersion ?? '', exported_at: exportedAt,
   };
 }
