@@ -5,55 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#1b6b4f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="KIA Tumbuh" />
+  <meta name="apple-mobile-web-app-title" content="HONAI" />
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-  <title>KIA Tumbuh</title>
+  <title>HONAI</title>
 </head>
 <body>
   <header>
-    <h1>KIA Tumbuh</h1>
-    <p class="sub">Halaman tumbuh kembang Buku KIA, 0&ndash;24 bulan</p>
+    <h1>HONAI</h1>
+    <p class="sub">Rekam medis kertas &rarr; data, status gizi, pemeriksaan dosis malaria</p>
   </header>
 
   <div id="status" class="banner wait" role="status">Menyiapkan mode offline&hellip;</div>
   <div class="notice">Data hanya tersimpan di HP ini. Untuk uji coba, pakai data contoh (sintetis) saja.</div>
 
   <main>
-    <section id="entry" aria-labelledby="entry-title">
-      <h2 id="entry-title">1. Data anak</h2>
-      <form id="form" autocomplete="off" novalidate>
-        <label>Kode anak (6 angka, boleh dikosongkan)
-          <input id="code" inputmode="numeric" maxlength="6" placeholder="mis. 482133" />
-        </label>
-        <fieldset>
-          <legend>Jenis kelamin</legend>
-          <label class="inline"><input type="radio" name="sex" value="L" /> Laki-laki</label>
-          <label class="inline"><input type="radio" name="sex" value="P" /> Perempuan</label>
-        </fieldset>
-        <label>Tanggal lahir
-          <input id="dob" type="date" />
-        </label>
-        <label>Tanggal ukur
-          <input id="visit" type="date" />
-        </label>
-        <p id="form-error" class="error" hidden></p>
-      </form>
-    </section>
-
     <section id="photo-step" aria-labelledby="photo-title">
-      <h2 id="photo-title">2. Foto halaman tumbuh</h2>
-      <p class="muted">Foto halaman &ldquo;Tabel Pertumbuhan Anak Usia 0-2 Tahun&rdquo; yang sudah diisi. Seluruh tabel harus terlihat, cahaya cukup, kamera tegak lurus di atas halaman.</p>
+      <h2 id="photo-title">Foto halaman rekam medis</h2>
+      <p class="muted">Foto seluruh halaman rekam medis yang sudah diisi (formulir contoh sintetis). Seluruh halaman harus terlihat, cahaya cukup, kamera tegak lurus. Foto layar tablet juga bisa: kecerahan sedang, hindari pantulan.</p>
       <div class="row">
         <label class="photo-btn primary">Ambil foto<input id="photo-camera" type="file" accept="image/*" capture="environment" hidden /></label>
         <label class="photo-btn secondary">Pilih dari galeri<input id="photo-gallery" type="file" accept="image/*" hidden /></label>
       </div>
       <p id="progress" class="muted" hidden role="status"></p>
       <p id="photo-error" class="error" hidden></p>
+      <p class="muted"><a href="/forms/rekam-medis-contoh.pdf" target="_blank" rel="noopener">Buka formulir contoh (PDF)</a></p>
       <details id="manual">
         <summary>Isi manual tanpa foto</summary>
-        <label>Berat badan (kg)<input id="m-weight" inputmode="decimal" placeholder="mis. 8,4" /></label>
-        <label>Panjang badan (cm)<input id="m-length" inputmode="decimal" placeholder="mis. 73,0" /></label>
-        <button id="manual-go" type="button" class="secondary">Hitung</button>
+        <fieldset>
+          <legend>Jenis kelamin</legend>
+          <label class="inline"><input type="radio" name="man-sex" value="L" /> LK</label>
+          <label class="inline"><input type="radio" name="man-sex" value="P" /> PR</label>
+        </fieldset>
+        <div class="trio"><label>Lahir: tgl<input id="man-dobD" inputmode="numeric" /></label><label>bln<input id="man-dobM" inputmode="numeric" /></label><label>tahun<input id="man-dobY" inputmode="numeric" /></label></div>
+        <div class="trio"><label>TGL: tgl<input id="man-tglD" inputmode="numeric" /></label><label>bln<input id="man-tglM" inputmode="numeric" /></label><label>tahun<input id="man-tglY" inputmode="numeric" /></label></div>
+        <div class="trio"><label>TD sistolik<input id="man-sys" inputmode="numeric" /></label><label>diastolik<input id="man-dia" inputmode="numeric" /></label><label>HR<input id="man-hr" inputmode="numeric" /></label></div>
+        <div class="trio"><label>RR<input id="man-rr" inputmode="numeric" /></label><label>T (&deg;C)<input id="man-temp" inputmode="decimal" /></label><label>TB (cm)<input id="man-height" inputmode="decimal" /></label></div>
+        <label>BB (kg)<input id="man-weight" inputmode="decimal" /></label>
+        <p id="manual-error" class="error" hidden></p>
+        <button id="manual-go" type="button" class="secondary">Lanjut</button>
       </details>
     </section>
 

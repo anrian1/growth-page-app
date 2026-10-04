@@ -3,8 +3,11 @@
 //   2. readRow : for one child (one sex, one month) read only the two handwriting cells, several times each.
 // The browser parts (photo, engine) are passed in, so this file can be tested with fakes.
 import { mapTokens, cellRect, latestFilledMonth } from './mapping.js';
-import { readCell } from './readcell.js';
+import { readCell, readSex } from './readcell.js';
 import { TEMPLATE } from './template.js';
+import { applyH } from './align.js';
+import { alignClinicPage, alignByTemplate, placeBox, readRect, CLINIC, CLINIC_FIELDS } from './clinic.js';
+import MEDREC from './templates/medical-record.js';
 
 export const PAGE_MAX_SIDE = 1600;     // the whole-page reading is done on a picture no bigger than this
 const CELL_OCR_OPTIONS = { minimumConfidence: 0.2 };   // keep weak readings: they are only votes, and a person confirms
@@ -54,4 +57,118 @@ export async function readRow(session, { sex, month, engine, photo, onProgress =
   let hint = null;
   if (cells.weight.status === 'empty' && cells.length.status === 'empty' && latest !== null && latest !== month) hint = { latestMonth: latest };
   return { sex, month, cells, flags, hint, rects };
+}
+
+
+// ---------------------------------------------------------------- the clinic visit sheet
+function inside(poly, x, y) {                       // is the point inside a four-cornered shape?
+  let sign = 0;
+  for (let i = 0; i < 4; i += 1) {
+    const a = poly[i]; const b = poly[(i + 1) % 4];
+    const cross = (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]);
+    if (cross !== 0) { if (sign === 0) sign = Math.sign(cross); else if (Math.sign(cross) !== sign) return false; }
+  }
+  return true;
+}
+const bounds = (poly) => { const xs = poly.map((q) => q[0]); const ys = poly.map((q) => q[1]); return { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) }; };
+
+export async function readClinicPage({ file, engine, photo, onProgress = () => {} }) {
+  onProgress('Membuka foto…');
+  const img = await photo.load(file);
+  const pageCanvas = photo.scaled(img, PAGE_MAX_SIDE);
+  onProgress('Membaca halaman…');
+  const result = await engine.recognize(pageCanvas);
+  const tokens = (result.lines || []).flat().map((t) => ({ text: t.text, x: t.box.x, y: t.box.y, w: t.box.width, h: t.box.height }));
+  return { img, pageCanvas, tokens, aligned: alignClinicPage(tokens), factor: img.width / pageCanvas.width };
+}
+
+/**
+ * readClinicFields(session, { engine, photo }) -> { cells: { sys, dia, ... }, rects, pictures: { keluhan, diagnosis, rencana }, flags }
+ * Reads only the six numeric boxes. The free-text areas are returned as picture rectangles for a person to look at.
+ */
+export async function readClinicFields(session, { engine, photo, onProgress = () => {} }) {
+  const { aligned } = session;
+  if (!aligned.ok) return { cells: null, rects: null, pictures: null, flags: [...aligned.problems] };
+  const toSource = (r) => ({ x: r.x * session.factor, y: r.y * session.factor, w: r.w * session.factor, h: r.h * session.factor });
+  const cells = {}; const rects = {};
+  for (const key of CLINIC_FIELDS) {
+    const field = CLINIC.fields[key];
+    onProgress(`Membaca ${field.label.toLowerCase()}…`);
+    const poly = aligned.rects[key].poly;
+    const pageText = session.tokens.filter((t) => inside(poly, t.x + t.w / 2, t.y + t.h / 2)).sort((a, b) => a.x - b.x).map((t) => t.text.trim()).join(' ');
+    rects[key] = toSource(bounds(poly));
+    cells[key] = await readCell({
+      column: key, range: field.range, repairDecimal: field.decimals === 1, month: null,
+      rect: toSource(readRect(poly)),
+      pageText: pageText === '' ? null : pageText,
+      makeCrop: (rect, height) => photo.crop(session.img, rect, height),
+      recognize: (picture) => engine.recognize(picture, CELL_OCR_OPTIONS),
+      measureInk: (picture) => photo.ink(picture),
+    });
+  }
+  const pictures = {};
+  for (const [key, b] of Object.entries(CLINIC.freeText)) {
+    const poly = [[b.x, b.y], [b.x + b.w, b.y], [b.x + b.w, b.y + b.h], [b.x, b.y + b.h]].map((p) => applyH(aligned.H, p));
+    pictures[key] = toSource(bounds(poly));
+  }
+  return { cells, rects, pictures, flags: [] };
+}
+
+
+// ---------------------------------------------------------------- the revised medical record (SOAP page)
+export const RECORD_FIELDS = Object.keys(MEDREC.fields);         // sys, dia, hr, rr, temp, height, weight, dobD, dobM, dobY, tglD, tglM, tglY
+export { MEDREC };
+
+export async function readRecordPage({ file, engine, photo, onProgress = () => {} }) {
+  onProgress('Membuka foto…');
+  const img = await photo.load(file);
+  const pageCanvas = photo.scaled(img, PAGE_MAX_SIDE);
+  onProgress('Membaca halaman…');
+  const result = await engine.recognize(pageCanvas);
+  const tokens = (result.lines || []).flat().map((t) => ({ text: t.text, x: t.box.x, y: t.box.y, w: t.box.width, h: t.box.height }));
+  return { img, pageCanvas, tokens, aligned: alignByTemplate(MEDREC, tokens), factor: img.width / pageCanvas.width };
+}
+
+/**
+ * readRecordFields(session, { engine, photo }) ->
+ *   { cells: { sys, dia, ... }, rects, sex: { sex, status, why }, ticks: { ratios, rects }, pictures: { keluhan, asessmen, planning }, flags }
+ * The numeric boxes and the date boxes are read like the other pages (page reading + three crops, voted). The two sex boxes are ink-measured.
+ * The free-text areas are returned as picture rectangles only: the AI does not read them.
+ */
+export async function readRecordFields(session, { engine, photo, onProgress = () => {} }) {
+  const { aligned } = session;
+  if (!aligned.ok) return { cells: null, rects: null, sex: null, ticks: null, pictures: null, flags: [...aligned.problems] };
+  const toSource = (r) => ({ x: r.x * session.factor, y: r.y * session.factor, w: r.w * session.factor, h: r.h * session.factor });
+  const cells = {}; const rects = {};
+  let n = 0;
+  for (const key of RECORD_FIELDS) {
+    const field = MEDREC.fields[key];
+    n += 1;
+    onProgress(`Membaca ${field.label} (${n}/${RECORD_FIELDS.length})…`);
+    const poly = placeBox(aligned.H, field.box);
+    const pageText = session.tokens.filter((t) => inside(poly, t.x + t.w / 2, t.y + t.h / 2)).sort((a, b) => a.x - b.x).map((t) => t.text.trim()).join(' ');
+    rects[key] = toSource(bounds(poly));
+    cells[key] = await readCell({
+      column: key, range: field.range, repairDecimal: field.decimals === 1, integer: field.decimals === 0, month: null,
+      rect: toSource(readRect(poly)),
+      pageText: pageText === '' ? null : pageText,
+      makeCrop: (rect, height) => photo.crop(session.img, rect, height),
+      recognize: (picture) => engine.recognize(picture, CELL_OCR_OPTIONS),
+      measureInk: (picture) => photo.ink(picture),
+    });
+  }
+  onProgress('Membaca kotak LK/PR…');
+  const ratios = {}; const tickRects = {};
+  for (const key of Object.keys(MEDREC.ticks)) {
+    const poly = placeBox(aligned.H, MEDREC.ticks[key].box);
+    const picture = await photo.crop(session.img, toSource(readRect(poly, 0.22)), 96);
+    ratios[key] = photo.ink(picture);
+    tickRects[key] = toSource(bounds(poly));
+  }
+  const sex = readSex(ratios.sexL, ratios.sexP);
+  const pictures = {};
+  for (const [key, b] of Object.entries(MEDREC.freeText)) pictures[key] = toSource(bounds(placeBox(aligned.H, b)));
+  const union = (list) => { const x0 = Math.min(...list.map((r) => r.x)); const y0 = Math.min(...list.map((r) => r.y)); const x1 = Math.max(...list.map((r) => r.x + r.w)); const y1 = Math.max(...list.map((r) => r.y + r.h)); const m = 6 * session.factor; return { x: x0 - m, y: y0 - m, w: x1 - x0 + 2 * m, h: y1 - y0 + 2 * m }; };
+  const strips = { dob: union([rects.dobD, rects.dobM, rects.dobY]), tgl: union([rects.tglD, rects.tglM, rects.tglY]), sex: union([tickRects.sexL, tickRects.sexP]), td: union([rects.sys, rects.dia]) };
+  return { cells, rects, sex, ticks: { ratios, rects: tickRects }, pictures, strips, flags: [] };
 }

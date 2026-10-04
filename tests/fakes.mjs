@@ -1,44 +1,54 @@
-// A fake camera and a fake OCR engine for tests, built on the REAL page layout (tests/fixtures/mock_page_tokens.json).
-// The whole-page reading returns the real fixture. Cell crops return whatever the test script says.
+// A fake camera and a fake OCR engine for tests, built on REAL OCR output of a synthetic photo of the revised medical record
+// (tests/fixtures/record_ocr_fixtures.json). The whole-page reading returns the real tokens; cell crops return the real crop readings
+// unless a test overrides them with script.say(); tick boxes return the measured ink ratios.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { mapTokens, cellRect } from '../src/mapping.js';
-import { TEMPLATE } from '../src/template.js';
+import { alignByTemplate, placeBox, readRect } from '../src/clinic.js';
+import MEDREC from '../src/templates/medical-record.js';
 
-const fixture = JSON.parse(readFileSync(join(process.cwd(), 'tests/fixtures/mock_page_tokens.json'), 'utf8'));
-export const mapped = mapTokens(fixture.tokens);
-export const script = { say: () => null, ink: () => 0.05, page: 'table' };   // say({column, month, height}) -> text or null
+export const sheets = JSON.parse(readFileSync(join(process.cwd(), 'tests/fixtures/record_ocr_fixtures.json'), 'utf8'));
+export const FACTOR = 1.5;                                                   // the fake photo is 2400 px wide, the page reading is done at 1600 px
+export const script = { sheet: 'C03', page: 'record', say: null, ink: null, delayMs: 0 };
 
-function identify(rect) {
-  for (const column of TEMPLATE.columns) {
-    for (let month = 0; month <= 24; month += 1) {
-      const r = cellRect(mapped.geometry, column, month, TEMPLATE.cell);
-      if (Math.abs(r.x - rect.x) < 1e-6 && Math.abs(r.y - rect.y) < 1e-6) return { column, month };
-    }
-  }
-  return null;
+function worldFor(name) {
+  const sheet = sheets.find((s) => s.name === name);
+  const al = alignByTemplate(MEDREC, sheet.tokens);
+  const fieldRect = Object.fromEntries(Object.keys(MEDREC.fields).map((k) => [k, readRect(placeBox(al.H, MEDREC.fields[k].box))]));
+  const tickRect = Object.fromEntries(Object.keys(MEDREC.ticks).map((k) => [k, readRect(placeBox(al.H, MEDREC.ticks[k].box), 0.22)]));
+  return { sheet, fieldRect, tickRect };
 }
+const near = (a, b) => Math.abs(a.x - b.x) < 0.01 && Math.abs(a.y - b.y) < 0.01;
 
 export const engine = {
   async load() {},
   currentTier() { return 'small'; },
   setTier() {},
   async recognize(picture) {
+    if (script.delayMs) await new Promise((r) => setTimeout(r, script.delayMs));
+    const w = worldFor(script.sheet);
     if (picture.kind === 'page') {
-      if (script.page === 'junk') return { lines: [[{ text: 'hello', box: { x: 1, y: 1, width: 10, height: 10 } }]] };
-      return { lines: [fixture.tokens.map((t) => ({ text: t.text, confidence: t.conf, box: { x: t.x, y: t.y, width: t.w, height: t.h } }))] };
+      if (script.page === 'junk') return { lines: [[{ text: 'Tabel Pertumbuhan Anak', box: { x: 1, y: 1, width: 100, height: 20 } }]] };
+      return { lines: [w.sheet.tokens.map((t) => ({ text: t.text, confidence: t.conf, box: { x: t.x, y: t.y, width: t.w, height: t.h } }))] };
     }
-    const id = identify(picture.rect);
-    const said = id ? script.say({ ...id, height: picture.height }) : null;
-    return { lines: said === null || said === undefined ? [] : [[{ text: said, box: { x: 0, y: 0, width: 10, height: 10 } }]] };
+    const key = Object.keys(w.fieldRect).find((k) => near(w.fieldRect[k], picture.rect));
+    if (!key) return { lines: [] };
+    const said = script.say ? script.say({ key, height: picture.height, truth: w.sheet.fields[key].truth }) : undefined;
+    const text = said !== undefined ? said : w.sheet.fields[key].crops[String(picture.height)] ?? '';
+    return { lines: text === null || text === '' ? [] : [[{ text, box: { x: 0, y: 0, width: 10, height: 10 } }]] };
   },
 };
 
 export const photo = {
-  async load() { return { width: 960, height: 1280, url: null }; },
+  async load() { return { width: 1600 * FACTOR, height: 2000 * FACTOR, url: null }; },
   release() {},
-  scaled(img) { return { kind: 'page', width: img.width, height: img.height }; },
-  crop(img, rect, height) { return { kind: 'crop', rect, height }; },
-  ink(picture) { return script.ink(identify(picture.rect)); },
+  scaled() { return { kind: 'page', width: 1600, height: 2000 }; },
+  crop(img, rect, height) { return { kind: 'crop', rect: { x: rect.x / FACTOR, y: rect.y / FACTOR, w: rect.w / FACTOR, h: rect.h / FACTOR }, height }; },
+  ink(picture) {
+    const w = worldFor(script.sheet);
+    const tk = Object.keys(w.tickRect).find((k) => near(w.tickRect[k], picture.rect));
+    if (tk) { const r = script.ink ? script.ink(tk) : undefined; return r !== undefined ? r : w.sheet.ticks[tk].ratio; }
+    const key = Object.keys(w.fieldRect).find((k) => near(w.fieldRect[k], picture.rect));
+    return key ? 0.05 : 0.0;
+  },
   thumb() { return document.createElement('canvas'); },
 };

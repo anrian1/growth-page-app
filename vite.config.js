@@ -27,9 +27,9 @@ export default defineConfig({
       registerType: 'autoUpdate',            // a new version installs quietly when the phone has internet
       includeAssets: ['icons/*.png'],
       manifest: {
-        name: 'KIA Tumbuh',
-        short_name: 'KIA Tumbuh',
-        description: 'Halaman tumbuh kembang Buku KIA (0-24 bulan), bekerja tanpa internet.',
+        name: 'HONAI',
+        short_name: 'HONAI',
+        description: 'HONAI: rekam medis kertas menjadi data, status gizi dan pemeriksaan dosis malaria. Bekerja tanpa internet.',
         lang: 'id',
         theme_color: '#1b6b4f',
         background_color: '#ffffff',
@@ -46,7 +46,7 @@ export default defineConfig({
       workbox: {
         // Everything the app needs must be listed here, or it will not work offline.
         // Model files (.onnx) and WASM files are added so they are saved on the phone too.
-        globPatterns: ['**/*.{js,css,html,png,svg,json,txt,wasm,onnx,ort,mjs}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,json,txt,wasm,onnx,ort,mjs,pdf}'],
         maximumFileSizeToCacheInBytes: 60 * 1024 * 1024,
         navigateFallback: 'index.html',
         // Vite also copies the WebAssembly file into assets/. We load our own copy from /ort/, so do not save two.

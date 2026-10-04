@@ -7,12 +7,14 @@ export const LOOKALIKE = {
 
 // Describe how a piece of OCR text was turned into a number, so the screen can warn when it was a guess.
 // { value, substituted, hadSpace, raw }  (value is null when the text is not mostly digits)
-export function analyseNumber(text) {
+// loose = true is for a box that is KNOWN to hold a number (a vitals or date box): a reading made only of look-alike letters ("ZOZS" for 2025)
+// is accepted as a guess, never as certain. The default (strict) needs at least half real digits, for text of unknown kind.
+export function analyseNumber(text, { loose = false } = {}) {
   const raw = String(text ?? '');
   const hadSpace = /\S\s+\S/.test(raw.trim());
   const t = raw.trim().replace(/\s+/g, '').replace(',', '.').replace('\u00b7', '.');
   if (t === '') return { value: null, substituted: false, hadSpace: false, raw };
-  const digits = (t.match(/\d/g) || []).length;
+  const digits = loose ? [...t].filter((c) => /\d/.test(c) || LOOKALIKE[c] !== undefined).length : (t.match(/\d/g) || []).length;
   if (digits < Math.ceil(t.length / 2)) return { value: null, substituted: false, hadSpace, raw };   // mostly not a number
   let substituted = false;
   const fixed = [...t].map((c) => { if (LOOKALIKE[c] !== undefined) { substituted = true; return LOOKALIKE[c]; } return c; }).join('');

@@ -58,6 +58,32 @@ for (const c of cases) {
 }
 console.log(`Cases: ${casePass} of ${cases.length} passed`);
 
+// ---- 1b. months 24-59: expected scores come from the independent reference library (pygrowup), standing height and weight-for-height ----
+const cases2 = parseCsv(readFileSync(join(here, 'cases_24_59.csv'), 'utf8'));
+let case2Pass = 0;
+for (const c of cases2) {
+  const before = failures;
+  const r = assess({ sex: c.sex, ageMonths: num(c.age_months), weightKg: num(c.weight_kg), lengthCm: num(c.length_cm) });
+  if (r.action !== 'SCORE' && r.action !== 'FLAG_CONFIRM') fail(`${c.case_id}: action ${r.action}`);
+  for (const [idx, zCol, catCol] of [['bbu', 'exp_z_bbu', 'exp_cat_bbu'], ['pbu', 'exp_z_pbu', 'exp_cat_pbu'], ['bbpb', 'exp_z_bbpb', 'exp_cat_bbpb']]) {
+    const expZ = num(c[zCol]); const gotZ = r.z[idx];
+    if (gotZ === null) { fail(`${c.case_id}: ${idx} not calculated`); continue; }
+    if (!(idx !== 'pbu' && Math.abs(expZ) > BEYOND) && Math.abs(gotZ - expZ) > Z_TOLERANCE) fail(`${c.case_id}: ${idx} z ${gotZ.toFixed(3)}, library ${expZ}`);
+    if (r.category[idx] !== c[catCol]) fail(`${c.case_id}: ${idx} category "${r.category[idx]}", library says "${c[catCol]}" (z ${gotZ.toFixed(3)})`);
+  }
+  if (!r.standing) fail(`${c.case_id}: months 24-59 must use the standing tables`);
+  if (failures === before) case2Pass += 1;
+}
+console.log(`Months 24-59 against the reference library: ${case2Pass} of ${cases2.length} passed`);
+const edge = { under24: assess({ sex: 'L', ageMonths: 23, weightKg: 12, lengthCm: 86 }), from24: assess({ sex: 'L', ageMonths: 24, weightKg: 12, lengthCm: 86 }), last: assess({ sex: 'L', ageMonths: 59, weightKg: 17, lengthCm: 108 }), over: assess({ sex: 'L', ageMonths: 60, weightKg: 17, lengthCm: 108 }) };
+if (edge.under24.standing || !edge.from24.standing) fail('23 months must be lying and 24 months standing');
+if (edge.under24.names.pbu !== 'PB/U' || edge.from24.names.pbu !== 'TB/U' || edge.from24.names.bbpb !== 'BB/TB') fail('index names must switch at 24 months');
+if (edge.last.action === 'OUT_OF_SCOPE' || edge.over.action !== 'OUT_OF_SCOPE') fail('59 months is in scope, 60 months is not');
+if (Math.abs(edge.under24.z.pbu - edge.from24.z.pbu) < 0.05) fail('the lying and standing tables should give different scores for the same child (about 0.7 cm apart)');
+const out64 = assess({ sex: 'L', ageMonths: 30, weightKg: 12, lengthCm: 64 }); const out121 = assess({ sex: 'L', ageMonths: 30, weightKg: 12, lengthCm: 121 });
+if (out64.z.bbpb !== null || out64.action !== 'FLAG_CONFIRM' || out121.z.bbpb !== null) fail('a height outside the 65-120 cm table must not be scored (BB/TB), and must be flagged');
+console.log('Age switch at 24 months and table limits: checked');
+
 // ---- 2. category boundaries, using z values only (hand-written expectations) ----
 const B = {
   bbu: [categoryBbu, [[-3.001, 'Berat badan sangat kurang'], [-3.0, 'Berat badan kurang'], [-2.999, 'Berat badan kurang'],
@@ -105,7 +131,7 @@ console.log(`Length rounding: ${roundPass} of ${rounding.length} passed`);
 
 // ---- 5. flagged cases must say WHY (the person needs the reason, not just a warning) ----
 const reasonChecks = [
-  ['E01', /Weight 84 kg/], ['E02', /Length 6\.9 cm/], ['E03', /Length 830 cm/],
+  ['E01', /Berat 84 kg/], ['E02', /Panjang 6\.9 cm/], ['E03', /Panjang 830 cm/],
 ];
 let reasonPass = 0;
 for (const [id, pattern] of reasonChecks) {

@@ -1,0 +1,20 @@
+import { fitHomography, applyH, fitHomographyRobust } from '../src/align.js';
+let failures = 0; let pass = 0;
+const check = (name, ok, detail = '') => { if (ok) pass += 1; else { failures += 1; console.log(`FAIL  ${name} ${detail}`); } };
+const truthH = [0.96, -0.08, 120, 0.06, 0.93, 80, 0.00004, -0.00002, 1];     // tilt + shift + a little perspective
+const pts = [[40, 60], [300, 70], [520, 80], [60, 200], [310, 210], [530, 205], [50, 420], [300, 440], [540, 430], [100, 760], [320, 770], [500, 750]];
+const pairs = pts.map((p) => ({ from: p, to: applyH(truthH, p) }));
+const H = fitHomography(pairs);
+const err = (Hm, p) => { const a = applyH(Hm, p); const b = applyH(truthH, p); return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+check('recovers a known homography (max error under 0.01 px)', pts.every((p) => err(H, p) < 0.01), JSON.stringify(pts.map((p) => err(H, p).toFixed(4))));
+check('recovers it away from the points it was fitted on', err(H, [280, 300]) < 0.01 && err(H, [450, 600]) < 0.01);
+const noisy = pairs.map((p, i) => ({ from: p.from, to: [p.to[0] + ((i * 37) % 7 - 3) * 0.4, p.to[1] + ((i * 53) % 7 - 3) * 0.4] }));
+const Hn = fitHomography(noisy);
+check('stays within 2 px with 1 px of noise on every point', pts.every((p) => err(Hn, p) < 2));
+const wrong = noisy.map((p, i) => (i === 4 ? { from: p.from, to: [p.to[0] + 90, p.to[1] - 70] } : p));
+const rob = fitHomographyRobust(wrong, { maxPx: 6, minPairs: 6 });
+check('a wildly wrong match is thrown out', rob && rob.kept.length === pairs.length - 1 && pts.every((p) => err(rob.H, p) < 2), JSON.stringify(rob && rob.kept.length));
+check('fewer than 4 pairs gives nothing', fitHomography(pairs.slice(0, 3)) === null);
+check('identity pairs give identity', (() => { const I = fitHomography(pts.map((p) => ({ from: p, to: p }))); return pts.every((p) => { const q = applyH(I, p); return Math.hypot(q[0] - p[0], q[1] - p[1]) < 1e-6; }); })());
+console.log(`Alignment maths: ${pass} passed${failures ? `, ${failures} FAILED` : ''}`);
+process.exit(failures ? 1 : 0);

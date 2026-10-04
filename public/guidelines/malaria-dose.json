@@ -1,0 +1,465 @@
+{
+ "id": "malaria-dose-kemenkes-bukusaku",
+ "title": "Dosis antimalaria menurut Buku Saku Tata Laksana Kasus Malaria",
+ "source": {
+  "name": "Buku Saku Tata Laksana Kasus Malaria (Kemenkes RI, Direktorat P2PM, bersama IDI), cetakan ke-2",
+  "year": 2023,
+  "yearNote": "Tahun terbit tidak tertulis di berkas. 2023 hanya perkiraan dari rujukan WHO 2022-2023 di dalam teks. Periksa sampul PDF.",
+  "transcription": "Teks diambil dari berkas markdown hasil konversi PDF; kesalahan konversi mungkin ada. Nomor halaman dihitung dari penanda halaman di berkas dan harus dicek pada PDF."
+ },
+ "reviewedBy": null,
+ "scope": {
+  "covers": [
+   "DHP tablet biasa dan DHP dispersibel: jumlah tablet per hari menurut berat badan",
+   "Primakuin: jumlah tablet dan lama hari menurut jenis plasmodium",
+   "Dosis awal artesunat (mg/kgBB)",
+   "Larangan primakuin pada bayi <6 bulan, ibu hamil, ibu menyusui bayi <6 bulan dan defisiensi G6PD (hanya peringatan; dosis khusus G6PD tidak dihitung)"
+  ],
+  "doesNotCover": [
+   "Artemeter-lumefantrin dan artesunat-piraonaridin (Tabel 5-7)",
+   "Kina dan obat lini kedua",
+   "Malaria vivaks relaps (primakuin 0,5 mg/kgBB, perlu G6PD)",
+   "Dosis primakuin khusus defisiensi G6PD (hanya dikutip, tidak dihitung)",
+   "Dosis obat pada ibu hamil dan ibu menyusui (hanya peringatan primakuin)",
+   "Diagnosis (RDT atau mikroskop) dan pemantauan",
+   "Gizi buruk atau penyakit penyerta (berkas ini tidak membahasnya)",
+   "Kekuatan miligram per tablet (tidak tertulis di berkas)"
+  ]
+ },
+ "tables": {
+  "standard": {
+   "id": "standard",
+   "name": "DHP tablet + primakuin (Tabel 1, 2, 3)",
+   "bands": [
+    {
+     "label": "≤5 kg",
+     "ageLabel": "0-1 bln",
+     "weight": {
+      "lo": null,
+      "loInclusive": false,
+      "hi": 5,
+      "hiInclusive": true
+     },
+     "ageMonths": [
+      0,
+      1
+     ],
+     "dhp": [
+      1,
+      3
+     ],
+     "primaquine": null
+    },
+    {
+     "label": ">5-6 kg",
+     "ageLabel": "2-<6 bln",
+     "weight": {
+      "lo": 5,
+      "loInclusive": false,
+      "hi": 6,
+      "hiInclusive": true
+     },
+     "ageMonths": [
+      2,
+      5
+     ],
+     "dhp": [
+      1,
+      2
+     ],
+     "primaquine": null
+    },
+    {
+     "label": ">6-10 kg",
+     "ageLabel": "6-12 bln",
+     "weight": {
+      "lo": 6,
+      "loInclusive": false,
+      "hi": 10,
+      "hiInclusive": true
+     },
+     "ageMonths": [
+      6,
+      12
+     ],
+     "dhp": [
+      1,
+      2
+     ],
+     "primaquine": [
+      1,
+      4
+     ]
+    },
+    {
+     "label": ">10-17 kg",
+     "ageLabel": "<5 thn",
+     "weight": {
+      "lo": 10,
+      "loInclusive": false,
+      "hi": 17,
+      "hiInclusive": true
+     },
+     "ageMonths": [
+      0,
+      59
+     ],
+     "dhp": [
+      1,
+      1
+     ],
+     "primaquine": [
+      1,
+      4
+     ]
+    },
+    {
+     "label": ">17-30 kg",
+     "ageLabel": "5-9 thn",
+     "weight": {
+      "lo": 17,
+      "loInclusive": false,
+      "hi": 30,
+      "hiInclusive": true
+     },
+     "ageMonths": [
+      60,
+      119
+     ],
+     "dhp": [
+      3,
+      2
+     ],
+     "primaquine": [
+      1,
+      2
+     ]
+    },
+    {
+     "label": ">30-40 kg",
+     "ageLabel": "10-14 thn",
+     "weight": {
+      "lo": 30,
+      "loInclusive": false,
+      "hi": 40,
+      "hiInclusive": true
+     },
+     "ageMonths": [
+      120,
+      179
+     ],
+     "dhp": [
+      2,
+      1
+     ],
+     "primaquine": [
+      3,
+      4
+     ]
+    },
+    {
+     "label": ">40-60 kg",
+     "ageLabel": "≥15 thn",
+     "weight": {
+      "lo": 40,
+      "loInclusive": false,
+      "hi": 60,
+      "hiInclusive": true
+     },
+     "ageMonths": [
+      180,
+      null
+     ],
+     "dhp": [
+      3,
+      1
+     ],
+     "primaquine": [
+      1,
+      1
+     ]
+    },
+    {
+     "label": ">60-80 kg",
+     "ageLabel": "≥15 thn",
+     "weight": {
+      "lo": 60,
+      "loInclusive": false,
+      "hi": 80,
+      "hiInclusive": true
+     },
+     "ageMonths": [
+      180,
+      null
+     ],
+     "dhp": [
+      4,
+      1
+     ],
+     "primaquine": [
+      1,
+      1
+     ]
+    },
+    {
+     "label": ">80 kg",
+     "ageLabel": "≥15 thn",
+     "weight": {
+      "lo": 80,
+      "loInclusive": false,
+      "hi": null,
+      "hiInclusive": false
+     },
+     "ageMonths": [
+      180,
+      null
+     ],
+     "dhp": [
+      5,
+      1
+     ],
+     "primaquine": [
+      1,
+      1
+     ]
+    }
+   ],
+   "cites": {
+    "dhp": {
+     "page": "11",
+     "section": "Tabel 1",
+     "quote": "| 1-3 | DHP | 1/3 | ½ | ½ | 1 | 1½ | 2 | 3 | 4 | 5 |",
+     "note": "baris tabel, ditranskripsi dari berkas .md; cocokkan dengan PDF"
+    },
+    "primaquineFalciparum": {
+     "page": "11",
+     "section": "Tabel 1",
+     "quote": "| 1 | Primakuin | - | - | ¼ | ¼ | ½ | ¾ | 1 | 1 | 1 |",
+     "note": "baris tabel, ditranskripsi dari berkas .md; cocokkan dengan PDF"
+    },
+    "primaquineVivax": {
+     "page": "12",
+     "section": "Tabel 2",
+     "quote": "| 1-14 | Primakuin | - | - | ¼ | ¼ | ½ | ¾ | 1 | 1 | 1 |",
+     "note": "baris tabel, ditranskripsi dari berkas .md; cocokkan dengan PDF"
+    },
+    "primaquineMixed": {
+     "page": "13",
+     "section": "Tabel 3",
+     "quote": "| 1-14 | Primakuin | - | - | ¼ | ¼ | ½ | ¾ | 1 | 1 | 1 |",
+     "note": "baris tabel, ditranskripsi dari berkas .md; cocokkan dengan PDF"
+    }
+   }
+  },
+  "dispersible": {
+   "id": "dispersible",
+   "name": "DHP dispersibel (Tabel 4)",
+   "bands": [
+    {
+     "label": "5 - <8 kg",
+     "weight": {
+      "lo": 5,
+      "loInclusive": true,
+      "hi": 8,
+      "hiInclusive": false
+     },
+     "tablets": [
+      1,
+      1
+     ]
+    },
+    {
+     "label": "8 - <11 kg",
+     "weight": {
+      "lo": 8,
+      "loInclusive": true,
+      "hi": 11,
+      "hiInclusive": false
+     },
+     "tablets": [
+      3,
+      2
+     ]
+    },
+    {
+     "label": "11 - <17 kg",
+     "weight": {
+      "lo": 11,
+      "loInclusive": true,
+      "hi": 17,
+      "hiInclusive": false
+     },
+     "tablets": [
+      2,
+      1
+     ]
+    },
+    {
+     "label": "17 - <25 kg",
+     "weight": {
+      "lo": 17,
+      "loInclusive": true,
+      "hi": 25,
+      "hiInclusive": false
+     },
+     "tablets": [
+      3,
+      1
+     ]
+    },
+    {
+     "label": "25 - <36 kg",
+     "weight": {
+      "lo": 25,
+      "loInclusive": true,
+      "hi": 36,
+      "hiInclusive": false
+     },
+     "tablets": [
+      4,
+      1
+     ]
+    }
+   ],
+   "cite": {
+    "page": "14",
+    "section": "Tabel 4",
+    "quote": "| Hari ke-1 | 1 tab | 1 ½ tab | 2 tab | 3 tab | 4 tab |",
+    "note": "baris tabel, ditranskripsi dari berkas .md; cocokkan dengan PDF"
+   }
+  }
+ },
+ "species": {
+  "falciparum": {
+   "label": "P. falciparum",
+   "dhpDays": 3,
+   "primaquineDays": 1,
+   "primaquineTable": "primaquineFalciparum",
+   "cite": {
+    "page": "11",
+    "section": "IV.A.1",
+    "quote": "Primakuin untuk malaria falsiparum hanya diberikan pada hari pertama saja dengan dosis 0,25 mg/kgBB, dan untuk malaria vivaks selama 14 hari dengan dosis 0,25 mg/kgBB."
+   }
+  },
+  "vivax": {
+   "label": "P. vivax",
+   "dhpDays": 3,
+   "primaquineDays": 14,
+   "primaquineTable": "primaquineVivax",
+   "cite": {
+    "page": "11",
+    "section": "IV.A.1",
+    "quote": "Primakuin untuk malaria falsiparum hanya diberikan pada hari pertama saja dengan dosis 0,25 mg/kgBB, dan untuk malaria vivaks selama 14 hari dengan dosis 0,25 mg/kgBB."
+   }
+  },
+  "ovale": {
+   "label": "P. ovale",
+   "dhpDays": 3,
+   "primaquineDays": 14,
+   "primaquineTable": "primaquineVivax",
+   "cite": {
+    "page": "13",
+    "section": "IV.A.3",
+    "quote": "Pengobatan malaria ovale saat ini menggunakan ACT yaitu DHP selama 3 hari ditambah dengan Primakuin selama 14 hari."
+   }
+  },
+  "mixed": {
+   "label": "Campuran P. falciparum + P. vivax/ovale",
+   "dhpDays": 3,
+   "primaquineDays": 14,
+   "primaquineTable": "primaquineMixed",
+   "cite": {
+    "page": "13",
+    "section": "IV.A.5",
+    "quote": "Pada penderita dengan infeksi campur diberikan DHP selama 3 hari serta primakuin dengan dosis 0,25 mg/kgBB/hari selama 14 hari."
+   }
+  },
+  "malariae": {
+   "label": "P. malariae",
+   "dhpDays": 3,
+   "primaquineDays": 0,
+   "primaquineTable": null,
+   "cite": {
+    "page": "13",
+    "section": "IV.A.4",
+    "quote": "Pengobatan P. malariae diberikan DHP selama 3 hari, dengan dosis sama dengan pengobatan malaria lainnya dan tidak diberikan primakuin."
+   }
+  },
+  "knowlesi": {
+   "label": "P. knowlesi (PCR)",
+   "dhpDays": 3,
+   "primaquineDays": 0,
+   "primaquineTable": null,
+   "cite": {
+    "page": "14",
+    "section": "IV.A.6",
+    "quote": "Pengobatan malaria knowlesi dengan DHP dan tidak diberikan primakuin."
+   }
+  }
+ },
+ "statements": {
+  "testPositive": {
+   "page": "1–2",
+   "section": "Standar Pengobatan 2",
+   "quote": "Pengobatan dengan Artemisinin based Combination Therapy (ACT) hanya diberikan kepada penderita dengan hasil pemeriksaan darah malaria positif."
+  },
+  "dhpDays": {
+   "page": "1–2",
+   "section": "Standar Pengobatan 4",
+   "quote": "Pengobatan DHP diberikan selama 3 hari sesuai dengan berat badan"
+  },
+  "primaquineInfant": {
+   "page": "1–2",
+   "section": "Standar Pengobatan 3",
+   "quote": "Tidak diberikan Primakuin pada bayi <6 bulan, ibu hamil, ibu menyusui bayi usia <6 bulan dan penderita malaria dengan defisiensi enzim G6PD."
+  },
+  "weightOverAge": {
+   "page": "12",
+   "section": "Catatan b",
+   "quote": "Apabila ada ketidaksesuaian antara umur dan berat badan (pada tabel pengobatan), maka dosis yang dipakai adalah berdasarkan berat badan."
+  },
+  "obesity": {
+   "page": "12",
+   "section": "Catatan c",
+   "quote": "Untuk anak dengan obesitas gunakan dosis berdasarkan berat badan ideal"
+  },
+  "dispersibleLimit": {
+   "page": "14",
+   "section": "IV.A.5 (DHP dispersibel)",
+   "quote": "Penggunaan DHP dispersible terbatas pada pengobatan malaria tanpa komplikasi untuk anak dan bayi usia 6 bulan ke atas atau bayi dengan berat badan 5 kg atau lebih."
+  },
+  "g6pdDose": {
+   "page": "12",
+   "section": "Catatan e",
+   "quote": "Dosis primakuin pada penderita malaria dengan defisiensi G6PD 0,75mg/kgBB/minggu diberikan selama 8 minggu dengan pemantauan warna urin dan kadar hemoglobin."
+  },
+  "emptyStomach": {
+   "page": "18",
+   "section": "IV.D",
+   "quote": "Semua obat anti malaria tidak boleh diberikan dalam keadaan perut kosong karena bersifat iritasi lambung."
+  },
+  "severeTreatment": {
+   "page": "1–2",
+   "section": "Standar Pengobatan 5",
+   "quote": "Penderita malaria berat atau dengan komplikasi harus diobati dengan Artesunate intravena dan bila tidak memungkinkan diberikan secara intramuscular."
+  },
+  "artesunateDose": {
+   "page": "21–22",
+   "section": "VI.B",
+   "quote": "Dosis artesunat 3 mg/kgBB untuk anak BB <20kg. Anak dengan BB >20 kg menggunakan dosis 2,4 mg/kgBB."
+  },
+  "artesunatePreReferral": {
+   "page": "22",
+   "section": "VI.H",
+   "quote": "Diberikan suntikan artesunate iv/im dosis awal yaitu 2,4mg/kgBB (3 mg/KgBB untuk anak BB < 20 kg), satu kali pemberian dan dirujuk."
+  }
+ },
+ "artesunate": {
+  "mgPerKgBelow20": 3,
+  "mgPerKgAbove20": 2.4,
+  "boundaryKg": 20,
+  "boundaryUnspecified": true,
+  "roundingMg": 0.5,
+  "roundingNote": "Pedoman tidak memberi aturan pembulatan. Selisih sampai 0,5 mg dianggap sama (UPDATE ME: ditetapkan oleh penyusun aplikasi, bukan oleh pedoman)."
+ }
+}

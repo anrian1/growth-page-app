@@ -1,0 +1,970 @@
+{
+ "synthetic": true,
+ "note": "All children are invented. Expected outputs are computed by the app code (pipeline fidelity, not clinical truth).",
+ "cases": [
+  {
+   "id": "C01",
+   "sex": "L",
+   "ageMonths": 2,
+   "dob": "2026-08-01",
+   "visit": "2026-10-01",
+   "complaint": "demam 3 hari, menggigil",
+   "vitals": {
+    "sys": 84,
+    "dia": 54,
+    "hr": 138,
+    "rr": 38,
+    "temp": 38.6,
+    "height": 58.5,
+    "weight": 5.4
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP ½ tab 1x1 selama 3 hari",
+   "note": "Infant under 6 months, correct: DHP only, no primaquine",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1/2",
+    "dhpDays": 3,
+    "pqTablets": "0",
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": -0.25,
+    "zPbu": 0.04,
+    "zBbpb": -0.36,
+    "doseStatus": "match",
+    "doseChecks": [],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C02",
+   "sex": "P",
+   "ageMonths": 3,
+   "dob": "2026-07-01",
+   "visit": "2026-10-01",
+   "complaint": "demam tinggi, muntah",
+   "vitals": {
+    "sys": 88,
+    "dia": 54,
+    "hr": 132,
+    "rr": 34,
+    "temp": 39.4,
+    "height": 58.5,
+    "weight": 4.9
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP ⅓ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "note": "ERROR: primaquine given to an infant under 6 months",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1/3",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 1,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": -1.39,
+    "zPbu": -0.62,
+    "zBbpb": -1.26,
+    "doseStatus": "differs",
+    "doseChecks": [
+     "pq-infant"
+    ],
+    "doseNotes": [
+     "weight-over-age",
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C03",
+   "sex": "L",
+   "ageMonths": 7,
+   "dob": "2026-03-02",
+   "visit": "2026-10-02",
+   "complaint": "demam naik turun, lemas",
+   "vitals": {
+    "sys": 80,
+    "dia": 54,
+    "hr": 144,
+    "rr": 42,
+    "temp": 38.2,
+    "height": 69.5,
+    "weight": 8.3
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "note": "Correct: P. falciparum, DHP and primaquine 1 day",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1/2",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 1,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": 0,
+    "zPbu": 0.15,
+    "zBbpb": -0.01,
+    "doseStatus": "match",
+    "doseChecks": [],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C04",
+   "sex": "P",
+   "ageMonths": 9,
+   "dob": "2026-01-02",
+   "visit": "2026-10-02",
+   "complaint": "demam 2 hari, tidak mau makan",
+   "vitals": {
+    "sys": 90,
+    "dia": 58,
+    "hr": 128,
+    "rr": 36,
+    "temp": 40.1,
+    "height": 69,
+    "weight": 8.6
+   },
+   "diagnosisText": "Malaria vivaks",
+   "planningText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
+   "note": "Correct: P. vivax, primaquine 14 days",
+   "app": {
+    "species": "vivax",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1/2",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 14,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": 0.36,
+    "zPbu": -0.47,
+    "zBbpb": 0.84,
+    "doseStatus": "match",
+    "doseChecks": [],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C05",
+   "sex": "L",
+   "ageMonths": 11,
+   "dob": "2025-11-02",
+   "visit": "2026-10-02",
+   "complaint": "demam, menggigil, pucat",
+   "vitals": {
+    "sys": 84,
+    "dia": 54,
+    "hr": 138,
+    "rr": 38,
+    "temp": 38.9,
+    "height": 74.5,
+    "weight": 9
+   },
+   "diagnosisText": "Malaria vivaks",
+   "planningText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "note": "ERROR: P. vivax with primaquine for 1 day instead of 14",
+   "app": {
+    "species": "vivax",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1/2",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 1,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": -0.41,
+    "zPbu": -0.02,
+    "zBbpb": -0.53,
+    "doseStatus": "differs",
+    "doseChecks": [
+     "pq-days"
+    ],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C06",
+   "sex": "P",
+   "ageMonths": 14,
+   "dob": "2025-08-03",
+   "visit": "2026-10-03",
+   "complaint": "demam 4 hari, berkeringat",
+   "vitals": {
+    "sys": 90,
+    "dia": 58,
+    "hr": 116,
+    "rr": 28,
+    "temp": 39,
+    "height": 77,
+    "weight": 9.3
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "note": "ERROR: DHP amount doubled",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 1,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": -0.08,
+    "zPbu": 0.23,
+    "zBbpb": -0.26,
+    "doseStatus": "differs",
+    "doseChecks": [
+     "dhp-differs"
+    ],
+    "doseNotes": [
+     "weight-over-age",
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C07",
+   "sex": "L",
+   "ageMonths": 18,
+   "dob": "2025-04-03",
+   "visit": "2026-10-03",
+   "complaint": "demam 3 hari, menggigil",
+   "vitals": {
+    "sys": 96,
+    "dia": 62,
+    "hr": 132,
+    "rr": 32,
+    "temp": 37.8,
+    "height": 81.5,
+    "weight": 10.4
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP dispersibel 1½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "note": "Correct: dispersible DHP",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "dispersible",
+    "dhpTablets": "3/2",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 1,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": -0.45,
+    "zPbu": -0.28,
+    "zBbpb": -0.38,
+    "doseStatus": "match",
+    "doseChecks": [],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C08",
+   "sex": "P",
+   "ageMonths": 20,
+   "dob": "2025-02-03",
+   "visit": "2026-10-03",
+   "complaint": "demam tinggi, muntah",
+   "vitals": {
+    "sys": 88,
+    "dia": 54,
+    "hr": 120,
+    "rr": 26,
+    "temp": 38.6,
+    "height": 84,
+    "weight": 11.3
+   },
+   "diagnosisText": "Malaria campuran (P.f + P.v)",
+   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
+   "note": "Correct: mixed infection, primaquine 14 days",
+   "app": {
+    "species": "mixed",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 14,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": 0.48,
+    "zPbu": 0.43,
+    "zBbpb": 0.32,
+    "doseStatus": "match",
+    "doseChecks": [],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C09",
+   "sex": "L",
+   "ageMonths": 24,
+   "dob": "2024-10-04",
+   "visit": "2026-10-04",
+   "complaint": "demam naik turun, lemas",
+   "vitals": {
+    "sys": 92,
+    "dia": 58,
+    "hr": 124,
+    "rr": 30,
+    "temp": 39.4,
+    "height": 85.5,
+    "weight": 11.1
+   },
+   "diagnosisText": "Malaria malariae",
+   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "note": "ERROR: primaquine for P. malariae (none expected). Age 24 months: standing tables start here",
+   "app": {
+    "species": "malariae",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 1,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": -0.79,
+    "zPbu": -0.53,
+    "zBbpb": -0.75,
+    "doseStatus": "differs",
+    "doseChecks": [
+     "pq-species"
+    ],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C10",
+   "sex": "P",
+   "ageMonths": 27,
+   "dob": "2024-07-04",
+   "visit": "2026-10-04",
+   "complaint": "demam 2 hari, tidak mau makan",
+   "vitals": {
+    "sys": 90,
+    "dia": 58,
+    "hr": 116,
+    "rr": 28,
+    "temp": 38.2,
+    "height": 88.5,
+    "weight": 12.3
+   },
+   "diagnosisText": "Malaria falsiparum (RDT negatif)",
+   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "note": "ERROR: blood test recorded NEGATIVE but an ACT was prescribed",
+   "app": {
+    "species": "falciparum",
+    "testResult": "negative",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 1,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": 0.13,
+    "zPbu": 0.06,
+    "zBbpb": 0.02,
+    "doseStatus": "differs",
+    "doseChecks": [
+     "test-negative"
+    ],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C11",
+   "sex": "L",
+   "ageMonths": 30,
+   "dob": "2024-04-04",
+   "visit": "2026-10-04",
+   "complaint": "demam, menggigil, pucat",
+   "vitals": {
+    "sys": 96,
+    "dia": 62,
+    "hr": 132,
+    "rr": 32,
+    "temp": 40.1,
+    "height": 80,
+    "weight": 8.9
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP ½ tab 1x1 selama 5 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "note": "ERROR: DHP for 5 days. Severely stunted and underweight child",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1/2",
+    "dhpDays": 5,
+    "pqTablets": "1/4",
+    "pqDays": 1,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan sangat kurang",
+    "pbu": "Sangat pendek",
+    "bbpb": "Gizi kurang",
+    "zBbu": -3.44,
+    "zPbu": -3.5,
+    "zBbpb": -2.15,
+    "doseStatus": "differs",
+    "doseChecks": [
+     "dhp-days"
+    ],
+    "doseNotes": [
+     "weight-over-age",
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C12",
+   "sex": "P",
+   "ageMonths": 33,
+   "dob": "2024-01-05",
+   "visit": "2026-10-05",
+   "complaint": "demam 4 hari, berkeringat",
+   "vitals": {
+    "sys": 88,
+    "dia": 54,
+    "hr": 120,
+    "rr": 26,
+    "temp": 38.9,
+    "height": 94.5,
+    "weight": 19.2
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP 1½ tab 1x1 selama 3 hari; Primakuin ½ tab 1x1 selama 1 hari",
+   "note": "Correct dose, obese child: the app adds the ideal-weight note",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "3/2",
+    "dhpDays": 3,
+    "pqTablets": "1/2",
+    "pqDays": 1,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Risiko berat badan lebih",
+    "pbu": "Normal",
+    "bbpb": "Obesitas",
+    "zBbu": 2.73,
+    "zPbu": 0.43,
+    "zBbpb": 3.48,
+    "doseStatus": "match",
+    "doseChecks": [],
+    "doseNotes": [
+     "weight-over-age",
+     "obesity",
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C13",
+   "sex": "L",
+   "ageMonths": 36,
+   "dob": "2023-10-05",
+   "visit": "2026-10-05",
+   "complaint": "demam 3 hari, menggigil",
+   "vitals": {
+    "sys": 98,
+    "dia": 62,
+    "hr": 108,
+    "rr": 24,
+    "temp": 39,
+    "height": 91.5,
+    "weight": 10.2
+   },
+   "diagnosisText": "Malaria vivaks",
+   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
+   "note": "Correct dose, severely wasted child (Gizi buruk)",
+   "app": {
+    "species": "vivax",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 14,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan kurang",
+    "pbu": "Normal",
+    "bbpb": "Gizi buruk",
+    "zBbu": -2.85,
+    "zPbu": -1.24,
+    "zBbpb": -3.4,
+    "doseStatus": "match",
+    "doseChecks": [],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C14",
+   "sex": "P",
+   "ageMonths": 40,
+   "dob": "2023-06-05",
+   "visit": "2026-10-05",
+   "complaint": "demam tinggi, muntah",
+   "vitals": {
+    "sys": 96,
+    "dia": 62,
+    "hr": 100,
+    "rr": 22,
+    "temp": 37.8,
+    "height": 97.5,
+    "weight": 13.8
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP dispersibel 3 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "note": "ERROR: dispersible DHP one tablet too many",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "dispersible",
+    "dhpTablets": "3",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 1,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": -0.43,
+    "zPbu": -0.06,
+    "zBbpb": -0.58,
+    "doseStatus": "differs",
+    "doseChecks": [
+     "dhp-differs"
+    ],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C15",
+   "sex": "L",
+   "ageMonths": 45,
+   "dob": "2023-01-01",
+   "visit": "2026-10-01",
+   "complaint": "demam naik turun, lemas",
+   "vitals": {
+    "sys": 100,
+    "dia": 62,
+    "hr": 112,
+    "rr": 26,
+    "temp": 38.6,
+    "height": 101.5,
+    "weight": 15.8
+   },
+   "diagnosisText": "Malaria berat",
+   "planningText": "Artesunat IV dosis awal 47,4 mg (berat 15,8 kg); rujuk",
+   "note": "Severe malaria, artesunate dose correct (3 mg/kg under 20 kg)",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "severe",
+    "formulation": "standard",
+    "artesunateMg": 47.4,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "FLAG_CONFIRM",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": -0.02,
+    "zPbu": -0.03,
+    "zBbpb": 0.01,
+    "doseStatus": "match",
+    "doseChecks": [],
+    "doseNotes": [
+     "severe-treatment",
+     "artesunate-expected"
+    ]
+   }
+  },
+  {
+   "id": "C16",
+   "sex": "P",
+   "ageMonths": 50,
+   "dob": "2022-08-01",
+   "visit": "2026-10-01",
+   "complaint": "demam 2 hari, tidak mau makan",
+   "vitals": {
+    "sys": 94,
+    "dia": 58,
+    "hr": 96,
+    "rr": 20,
+    "temp": 39.4,
+    "height": 106.5,
+    "weight": 18.1
+   },
+   "diagnosisText": "Malaria berat",
+   "planningText": "Artesunat IV dosis awal 43,4 mg (berat 18,1 kg); rujuk",
+   "note": "ERROR: artesunate calculated at 2.4 mg/kg instead of 3 mg/kg",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "severe",
+    "formulation": "standard",
+    "artesunateMg": 43.4,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "FLAG_CONFIRM",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": 0.68,
+    "zPbu": 0.59,
+    "zBbpb": 0.48,
+    "doseStatus": "differs",
+    "doseChecks": [
+     "artesunate-differs"
+    ],
+    "doseNotes": [
+     "severe-treatment",
+     "artesunate-expected"
+    ]
+   }
+  },
+  {
+   "id": "C17",
+   "sex": "L",
+   "ageMonths": 56,
+   "dob": "2022-02-02",
+   "visit": "2026-10-02",
+   "complaint": "demam, menggigil, pucat",
+   "vitals": {
+    "sys": 98,
+    "dia": 62,
+    "hr": 108,
+    "rr": 24,
+    "temp": 38.2,
+    "height": 111,
+    "weight": 20
+   },
+   "diagnosisText": "Malaria berat",
+   "planningText": "Artesunat IV dosis awal 60 mg (berat 20 kg); rujuk",
+   "note": "EDGE: exactly 20.0 kg. The guideline does not say which rate applies: the app must answer \"not sure\"",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "severe",
+    "formulation": "standard",
+    "artesunateMg": 60,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "FLAG_CONFIRM",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": 0.92,
+    "zPbu": 0.72,
+    "zBbpb": 0.65,
+    "doseStatus": "cannot_check",
+    "doseChecks": [
+     "artesunate-boundary"
+    ],
+    "doseNotes": [
+     "severe-treatment",
+     "artesunate-boundary"
+    ]
+   }
+  },
+  {
+   "id": "C18",
+   "sex": "P",
+   "ageMonths": 59,
+   "dob": "2021-11-02",
+   "visit": "2026-10-02",
+   "complaint": "demam 4 hari, berkeringat",
+   "vitals": {
+    "sys": 96,
+    "dia": 62,
+    "hr": 100,
+    "rr": 22,
+    "temp": 40.1,
+    "height": 107.5,
+    "weight": 17
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "note": "EDGE: exactly 17.0 kg (top of the >10-17 kg column). Correct dose. Last month of the 0-59 range",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 1,
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "FLAG_CONFIRM",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": -0.41,
+    "zPbu": -0.3,
+    "zBbpb": -0.41,
+    "doseStatus": "match",
+    "doseChecks": [],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C19",
+   "sex": "L",
+   "ageMonths": 5,
+   "dob": "2026-05-03",
+   "visit": "2026-10-03",
+   "complaint": "demam 3 hari, menggigil",
+   "vitals": {
+    "sys": 80,
+    "dia": 54,
+    "hr": 144,
+    "rr": 42,
+    "temp": 38.9,
+    "height": 65.5,
+    "weight": 6
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP ½ tab 1x1 selama 3 hari",
+   "note": "EDGE: exactly 6.0 kg and age 5 months: no primaquine, DHP 1/2",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1/2",
+    "dhpDays": 3,
+    "pqTablets": "0",
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi kurang",
+    "zBbu": -2,
+    "zPbu": -0.19,
+    "zBbpb": -2.62,
+    "doseStatus": "match",
+    "doseChecks": [],
+    "doseNotes": [
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C20",
+   "sex": "P",
+   "ageMonths": 12,
+   "dob": "2025-10-03",
+   "visit": "2026-10-03",
+   "complaint": "demam tinggi, muntah",
+   "vitals": {
+    "sys": 88,
+    "dia": 54,
+    "hr": 120,
+    "rr": 26,
+    "temp": 39,
+    "height": 74.5,
+    "weight": 9
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "note": "ERROR: standard primaquine given although G6PD deficiency is recorded",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "standard",
+    "dhpTablets": "1/2",
+    "dhpDays": 3,
+    "pqTablets": "1/4",
+    "pqDays": 1,
+    "g6pd": "deficient"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": 0.05,
+    "zPbu": 0.19,
+    "zBbpb": -0.07,
+    "doseStatus": "differs",
+    "doseChecks": [
+     "pq-g6pd"
+    ],
+    "doseNotes": [
+     "g6pd-special-dose",
+     "empty-stomach"
+    ]
+   }
+  },
+  {
+   "id": "C21",
+   "sex": "L",
+   "ageMonths": 1,
+   "dob": "2026-09-04",
+   "visit": "2026-10-04",
+   "complaint": "demam naik turun, lemas",
+   "vitals": {
+    "sys": 84,
+    "dia": 54,
+    "hr": 138,
+    "rr": 38,
+    "temp": 37.8,
+    "height": 54.5,
+    "weight": 4.4
+   },
+   "diagnosisText": "Malaria falsiparum",
+   "planningText": "DHP dispersibel 1 tab 1x1 selama 3 hari",
+   "note": "EDGE: dispersible tablet below 5 kg: the table does not cover it, so the app must answer \"cannot check\"",
+   "app": {
+    "species": "falciparum",
+    "testResult": "positive",
+    "treatment": "uncomplicated",
+    "formulation": "dispersible",
+    "dhpTablets": "1",
+    "dhpDays": 3,
+    "pqTablets": "0",
+    "g6pd": "unknown"
+   },
+   "expected": {
+    "nutritionAction": "SCORE",
+    "bbu": "Berat badan normal",
+    "pbu": "Normal",
+    "bbpb": "Gizi baik",
+    "zBbu": -0.12,
+    "zPbu": -0.12,
+    "zBbpb": -0.02,
+    "doseStatus": "cannot_check",
+    "doseChecks": [
+     "cannot-look-up"
+    ],
+    "doseNotes": [
+     "cannot-look-up"
+    ]
+   }
+  }
+ ]
+}

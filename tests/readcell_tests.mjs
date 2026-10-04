@@ -25,6 +25,16 @@ check('colon read as a decimal point still agrees, but one guess makes it check'
 v = voteReadings(R('4.9', '9.9', '4.9', '9.9', '4.9'), 'L-weight');
 check('3 of 5 (60%) is below 75% -> check, not ok', v.status === 'check' && v.value === 4.9, JSON.stringify(v));
 
+// ---- lost decimal point (temperature, adult weight) ----
+v = voteReadings(R('37,2', '37 2', '37 2', '37 2'), { range: [32, 43], repairDecimal: true });
+check('"37 2" is repaired to 37.2, but only as "check"', v.value === 37.2 && v.status === 'check', JSON.stringify(v));
+v = voteReadings(R('365', '365', '36,5', '365'), { range: [32, 43], repairDecimal: true });
+check('"365" is repaired to 36.5 (check, because repaired readings are guesses)', v.value === 36.5 && v.status === 'check', JSON.stringify(v));
+v = voteReadings(R('365', '365', '365', '365'), { range: [32, 43] });
+check('without repair switched on, 365 is rejected as out of range', v.value === null && v.status === 'unreadable');
+v = voteReadings(R('589', '589', '589', '589'), 'P-length');
+check('growth-page columns never repair: 589 stays rejected', v.value === null && v.status === 'unreadable');
+
 // ---- pictures ----
 const flat = new Uint8ClampedArray(2000).fill(200);
 check('flat picture is not stretched', stretchContrast(Uint8ClampedArray.from(flat))[0] === 200);

@@ -1,0 +1,458 @@
+{
+ "id": "rekam-medis-contoh-v2",
+ "title": "REKAM MEDIS (contoh sintetis, revisi)",
+ "synthetic": true,
+ "page": {
+  "w": 595.28,
+  "h": 841.89
+ },
+ "labels": [
+  {
+   "text": "PEMERINTAH KABUPATEN ABCD",
+   "x": 207.81,
+   "y": 21.42,
+   "w": 179.65,
+   "h": 10.45
+  },
+  {
+   "text": "PUSKESMAS ABCD",
+   "x": 245.39,
+   "y": 35.42,
+   "w": 104.5,
+   "h": 10.45
+  },
+  {
+   "text": "NOMOR REKAM MEDIS",
+   "x": 193.28,
+   "y": 75.42,
+   "w": 123.44,
+   "h": 10.45
+  },
+  {
+   "text": "NAMA",
+   "x": 30.35,
+   "y": 100.98,
+   "w": 26.0,
+   "h": 8.55
+  },
+  {
+   "text": "NAMA KK",
+   "x": 30.35,
+   "y": 122.98,
+   "w": 40.51,
+   "h": 8.55
+  },
+  {
+   "text": "JENIS KELAMIN",
+   "x": 30.35,
+   "y": 144.98,
+   "w": 67.52,
+   "h": 8.55
+  },
+  {
+   "text": "TGL LAHIR",
+   "x": 30.35,
+   "y": 174.98,
+   "w": 46.51,
+   "h": 8.55
+  },
+  {
+   "text": "ALAMAT",
+   "x": 30.35,
+   "y": 206.98,
+   "w": 36.01,
+   "h": 8.55
+  },
+  {
+   "text": "TELP./HP",
+   "x": 30.35,
+   "y": 225.98,
+   "w": 40.01,
+   "h": 8.55
+  },
+  {
+   "text": "BPJS PBI",
+   "x": 376,
+   "y": 99.37,
+   "w": 37.32,
+   "h": 8.07
+  },
+  {
+   "text": "BPJS NON PBI",
+   "x": 376,
+   "y": 117.37,
+   "w": 58.57,
+   "h": 8.07
+  },
+  {
+   "text": "UMUM",
+   "x": 376,
+   "y": 135.37,
+   "w": 26.43,
+   "h": 8.07
+  },
+  {
+   "text": "LAINNYA",
+   "x": 376,
+   "y": 153.37,
+   "w": 36.37,
+   "h": 8.07
+  },
+  {
+   "text": "NO. KARTU BPJS :",
+   "x": 350,
+   "y": 188.37,
+   "w": 76.98,
+   "h": 8.07
+  },
+  {
+   "text": "Riwayat Alergi",
+   "x": 57.34,
+   "y": 261.48,
+   "w": 62.02,
+   "h": 8.55
+  },
+  {
+   "text": "Riwayat Penyakit Dahulu",
+   "x": 195.08,
+   "y": 261.48,
+   "w": 106.53,
+   "h": 8.55
+  },
+  {
+   "text": "Riwayat Penyakit Keluarga",
+   "x": 400.37,
+   "y": 261.48,
+   "w": 114.54,
+   "h": 8.55
+  },
+  {
+   "text": "SUBJEKTIF",
+   "x": 121.01,
+   "y": 319.59,
+   "w": 52.78,
+   "h": 9.03
+  },
+  {
+   "text": "OBJEKTIF",
+   "x": 248.64,
+   "y": 319.59,
+   "w": 46.98,
+   "h": 9.03
+  },
+  {
+   "text": "ASESSEMEN",
+   "x": 359.94,
+   "y": 319.59,
+   "w": 59.65,
+   "h": 9.03
+  },
+  {
+   "text": "PLANNING",
+   "x": 461.34,
+   "y": 319.59,
+   "w": 49.61,
+   "h": 9.03
+  },
+  {
+   "text": "Anamnesis",
+   "x": 123.4,
+   "y": 341.98,
+   "w": 48.02,
+   "h": 8.55
+  },
+  {
+   "text": "Pemeriksaan fisik dan",
+   "x": 224.86,
+   "y": 337.98,
+   "w": 94.55,
+   "h": 8.55
+  },
+  {
+   "text": "penunjang",
+   "x": 249.38,
+   "y": 349.98,
+   "w": 45.5,
+   "h": 8.55
+  },
+  {
+   "text": "Diagnosis",
+   "x": 368.26,
+   "y": 337.98,
+   "w": 43.01,
+   "h": 8.55
+  },
+  {
+   "text": "(Keputusan Klinis)",
+   "x": 350.01,
+   "y": 349.98,
+   "w": 79.51,
+   "h": 8.55
+  },
+  {
+   "text": "Rencana Layanan Klinis",
+   "x": 438.98,
+   "y": 342.6,
+   "w": 94.33,
+   "h": 7.79
+  },
+  {
+   "text": "Keluhan Utama :",
+   "x": 100.38,
+   "y": 374.98,
+   "w": 67.03,
+   "h": 8.55
+  },
+  {
+   "text": "Keluhan Tambahan :",
+   "x": 100.38,
+   "y": 394.98,
+   "w": 83.55,
+   "h": 8.55
+  },
+  {
+   "text": "Contoh sintetis untuk uji coba - bukan formulir resmi. Jangan menulis data pasien sungguhan.",
+   "x": 152.32,
+   "y": 814.54,
+   "w": 290.63,
+   "h": 6.65
+  }
+ ],
+ "fields": {
+  "sys": {
+   "label": "Tekanan darah sistolik",
+   "unit": "mmHg",
+   "range": [
+    50,
+    200
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 232.43,
+    "y": 374,
+    "w": 44,
+    "h": 28
+   }
+  },
+  "dia": {
+   "label": "Tekanan darah diastolik",
+   "unit": "mmHg",
+   "range": [
+    20,
+    140
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 288.43,
+    "y": 374,
+    "w": 44,
+    "h": 28
+   }
+  },
+  "hr": {
+   "label": "HR (nadi)",
+   "unit": "x/menit",
+   "range": [
+    40,
+    220
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 232.43,
+    "y": 414,
+    "w": 70,
+    "h": 28
+   }
+  },
+  "rr": {
+   "label": "RR (napas)",
+   "unit": "x/menit",
+   "range": [
+    8,
+    80
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 232.43,
+    "y": 454,
+    "w": 70,
+    "h": 28
+   }
+  },
+  "temp": {
+   "label": "Suhu (T)",
+   "unit": "C",
+   "range": [
+    34,
+    43
+   ],
+   "decimals": 1,
+   "box": {
+    "x": 232.43,
+    "y": 494,
+    "w": 70,
+    "h": 28
+   }
+  },
+  "height": {
+   "label": "Panjang/tinggi badan (TB)",
+   "unit": "cm",
+   "range": [
+    30,
+    200
+   ],
+   "decimals": 1,
+   "box": {
+    "x": 232.43,
+    "y": 534,
+    "w": 70,
+    "h": 28
+   }
+  },
+  "weight": {
+   "label": "Berat badan (BB)",
+   "unit": "kg",
+   "range": [
+    1.5,
+    120
+   ],
+   "decimals": 1,
+   "box": {
+    "x": 232.43,
+    "y": 574,
+    "w": 70,
+    "h": 28
+   }
+  },
+  "dobD": {
+   "label": "Tanggal lahir: tanggal",
+   "unit": "",
+   "range": [
+    1,
+    31
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 120,
+    "y": 166,
+    "w": 30,
+    "h": 22
+   }
+  },
+  "dobM": {
+   "label": "Tanggal lahir: bulan",
+   "unit": "",
+   "range": [
+    1,
+    12
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 164,
+    "y": 166,
+    "w": 30,
+    "h": 22
+   }
+  },
+  "dobY": {
+   "label": "Tanggal lahir: tahun",
+   "unit": "",
+   "range": [
+    1990,
+    2100
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 208,
+    "y": 166,
+    "w": 56,
+    "h": 22
+   }
+  },
+  "tglD": {
+   "label": "TGL: tanggal",
+   "unit": "",
+   "range": [
+    1,
+    31
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 41.35,
+    "y": 376,
+    "w": 34,
+    "h": 24
+   }
+  },
+  "tglM": {
+   "label": "TGL: bulan",
+   "unit": "",
+   "range": [
+    1,
+    12
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 41.35,
+    "y": 412,
+    "w": 34,
+    "h": 24
+   }
+  },
+  "tglY": {
+   "label": "TGL: tahun",
+   "unit": "",
+   "range": [
+    2000,
+    2100
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 41.35,
+    "y": 448,
+    "w": 52,
+    "h": 24
+   }
+  }
+ },
+ "ticks": {
+  "sexL": {
+   "label": "Laki-laki",
+   "box": {
+    "x": 120,
+    "y": 141,
+    "w": 14,
+    "h": 14
+   }
+  },
+  "sexP": {
+   "label": "Perempuan",
+   "box": {
+    "x": 172,
+    "y": 141,
+    "w": 14,
+    "h": 14
+   }
+  }
+ },
+ "freeText": {
+  "keluhan": {
+   "x": 99.38,
+   "y": 410,
+   "w": 96.05,
+   "h": 150
+  },
+  "asessmen": {
+   "x": 348.83,
+   "y": 368,
+   "w": 81.87,
+   "h": 160
+  },
+  "planning": {
+   "x": 436.7,
+   "y": 368,
+   "w": 98.88,
+   "h": 160
+  }
+ }
+}

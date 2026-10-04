@@ -53,13 +53,23 @@ export function tokensToText(result) {
  * - 'check'      : a clear leader with at least 2 votes, or the leaders were guesses (letters, spaces)
  * - 'unreadable' : no clear leader. No value is offered; the candidates are listed for a person to choose.
  */
-export function voteReadings(readings, column) {
-  const [lo, hi] = TEMPLATE.kinds[kindOfColumn(column)].range;
+export function voteReadings(readings, spec) {
+  // spec: a growth-page column name ('L-weight'), or { range: [lo, hi] } for any other numeric field
+  const [lo, hi] = typeof spec === 'string' ? TEMPLATE.kinds[kindOfColumn(spec)].range : spec.range;
+  const repairDecimal = typeof spec !== 'string' && spec.repairDecimal === true;
+  const integerOnly = typeof spec !== 'string' && spec.integer === true;      // dates: a decimal point means a misreading
   const analysed = readings.map((r) => {
-    const a = analyseNumber(r.text);
-    let value = a.value; let note = null;
+    const a = analyseNumber(r.text, { loose: true });
+    let value = a.value; let note = null; let repaired = false;
+    if (value !== null && integerOnly && !Number.isInteger(value)) { note = `${r.text} is not a whole number`; value = null; }
     if (value !== null && (value < lo || value > hi)) { note = `${r.text} is outside ${lo}-${hi}`; value = null; }
-    return { ...r, value, substituted: a.substituted, hadSpace: a.hadSpace, note };
+    // a lost decimal point is the commonest mistake on fields like temperature or adult weight ("365" or "37 2" for 36.5 / 37.2):
+    // offer the repaired number, but a repaired reading can never make a cell "ok"
+    if (value === null && repairDecimal && a.value !== null) {
+      const digits = String(r.text).replace(/\D/g, '');
+      if (digits.length >= 3) { const v = Number(digits) / 10; if (v >= lo && v <= hi) { value = v; repaired = true; note = `${r.text}: decimal point restored`; } }
+    }
+    return { ...r, value, substituted: a.substituted || repaired, hadSpace: a.hadSpace, note };
   });
   const groups = [];
   for (const a of analysed) {
@@ -93,7 +103,7 @@ export function voteReadings(readings, column) {
  *  measureInk(picture)    -> share of dark pixels
  *  pageText               -> what the whole-page reading said for this cell (one more vote), or null
  */
-export async function readCell({ column, month, rect, makeCrop, recognize, measureInk, pageText = null, heights = CROP_HEIGHTS }) {
+export async function readCell({ column, range = null, repairDecimal = false, integer = false, month, rect, makeCrop, recognize, measureInk, pageText = null, heights = CROP_HEIGHTS }) {
   const readings = [];
   if (pageText !== null && pageText !== undefined) readings.push({ source: 'page', text: String(pageText) });
   let ink = null;
@@ -106,7 +116,7 @@ export async function readCell({ column, month, rect, makeCrop, recognize, measu
     } catch (error) { text = ''; }
     readings.push({ source: `crop${h}`, text });
   }
-  const vote = voteReadings(readings, column);
+  const vote = voteReadings(readings, range ? { range, repairDecimal, integer } : column);
   const hasInk = ink === null ? null : ink >= INK_MIN;
   let { status } = vote; const why = [...vote.why];
   const anyText = readings.some((r) => r.text.trim() !== '');
@@ -114,4 +124,29 @@ export async function readCell({ column, month, rect, makeCrop, recognize, measu
   else if (hasInk === false && vote.value !== null) { status = 'check'; why.push('the cell looks empty, but a value was read'); }
   else if (hasInk === true && status === 'unreadable' && !anyText) why.push('ink found, but nothing could be read');
   return { column, month, status, value: status === 'empty' ? null : vote.value, candidates: vote.candidates, readings: vote.analysed.map((a) => ({ source: a.source, text: a.text, value: a.value })), ink, hasInk, why };
+}
+
+
+// ---------------------------------------------------------------- tick boxes (sex)
+export const TICK_ON = 0.02;    // UPDATE ME after real photos: share of dark pixels inside the box that counts as a tick
+export const TICK_OFF = 0.008;  // below this the box is blank; between the two it is "unclear" and a person decides
+
+/** ink ratio of a tick box -> 'ticked' | 'blank' | 'unclear' */
+export function tickState(ratio) {
+  if (ratio === null || ratio === undefined || !Number.isFinite(ratio)) return 'unclear';
+  if (ratio >= TICK_ON) return 'ticked';
+  if (ratio < TICK_OFF) return 'blank';
+  return 'unclear';
+}
+
+/** The two sex boxes -> { sex: 'L'|'P'|null, status: 'ok'|'check'|'unreadable', why } (never guesses when both or neither are ticked) */
+export function readSex(ratioL, ratioP) {
+  const l = tickState(ratioL); const p = tickState(ratioP);
+  if (l === 'ticked' && p === 'blank') return { sex: 'L', status: 'ok', why: [] };
+  if (p === 'ticked' && l === 'blank') return { sex: 'P', status: 'ok', why: [] };
+  if (l === 'ticked' && p === 'ticked') return { sex: null, status: 'unreadable', why: ['kedua kotak LK dan PR tampak ditandai'] };
+  if (l === 'blank' && p === 'blank') return { sex: null, status: 'unreadable', why: ['tidak ada kotak LK atau PR yang tampak ditandai'] };
+  if (l === 'ticked') return { sex: 'L', status: 'check', why: ['kotak PR kurang jelas'] };
+  if (p === 'ticked') return { sex: 'P', status: 'check', why: ['kotak LK kurang jelas'] };
+  return { sex: null, status: 'unreadable', why: ['tanda di kotak LK/PR kurang jelas'] };
 }

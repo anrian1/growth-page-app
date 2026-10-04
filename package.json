@@ -8,9 +8,12 @@
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview --host",
-    "test": "node tests/run_tests.mjs && node tests/app_tests.mjs && node tests/ocr_helpers_tests.mjs && node tests/mapping_tests.mjs && node tests/ocr_view_tests.mjs && node tests/readcell_tests.mjs && node tests/session_tests.mjs && vitest run",
+    "test": "node tests/run_tests.mjs && node tests/app_tests.mjs && node tests/ocr_helpers_tests.mjs && node tests/mapping_tests.mjs && node tests/ocr_view_tests.mjs && node tests/readcell_tests.mjs && node tests/session_tests.mjs && node tests/align_tests.mjs && node tests/clinic_tests.mjs && node tests/clinic_session_tests.mjs && node tests/vitals_tests.mjs && node tests/guidelines_tests.mjs && node tests/malaria_tests.mjs && node tests/recorddate_tests.mjs && node tests/record_tests.mjs && vitest run",
     "setup-ocr": "node scripts/setup-ocr.mjs",
-    "prebuild": "node scripts/setup-ocr.mjs"
+    "prebuild": "node scripts/setup-ocr.mjs",
+    "build-malaria-pack": "node scripts/build-malaria-pack.mjs && node scripts/print-malaria-verification.mjs",
+    "case-sheet": "node scripts/make-case-sheet.mjs",
+    "evidence": "node tests/record_eval.mjs"
   },
   "devDependencies": {
     "fake-indexeddb": "^6.2.5",

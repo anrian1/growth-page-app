@@ -52,3 +52,20 @@ button.small { padding: 6px 10px; min-height: 36px; font-size: .9rem; }
 pre { white-space: pre-wrap; word-break: break-word; font-size: .75rem; background: #f3f6f4; padding: 8px; border-radius: 6px; }
 textarea { width: 100%; font-size: .8rem; }
 .linkish { background: none; border: none; color: var(--green); text-decoration: underline; padding: 6px 0; }
+
+/* page type switch */
+body[data-kind="growth"] .only-clinic { display: none; }
+body[data-kind="clinic"] .only-growth { display: none; }
+.guide { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 8px; }
+.guide h3 { margin: 0 0 6px; font-size: 1rem; }
+ul.rules { list-style: none; padding: 0; margin: 6px 0; }
+.rule { border-left: 4px solid var(--green); background: #f3f8f5; padding: 6px 10px; margin-bottom: 8px; border-radius: 4px; }
+.rule.check { border-left-color: var(--amber); background: var(--amber-bg); }
+.rule p { margin: 2px 0; }
+.cite { font-size: .8rem; color: var(--muted); }
+
+/* medical record popup */
+.trio { display: flex; gap: 8px; } .trio label { flex: 1; }
+h3.group { margin: 16px 0 4px; font-size: 1rem; color: var(--green); border-bottom: 1px solid var(--line); padding-bottom: 3px; }
+.ageline { background: #eef3f0; border-radius: 8px; padding: 6px 10px; margin-top: 10px; }
+.ageline p { margin: 2px 0; }

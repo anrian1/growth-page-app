@@ -19,5 +19,12 @@ eq('letters are marked as a guess', analyseNumber('54.$').substituted, true);
 eq('inner space is marked', analyseNumber('50 .9').hadSpace, true);
 eq('lone space padding is not marked', analyseNumber(' 62.0 ').hadSpace, false);
 
+// loose mode (a box known to hold a number)
+eq('strict: all look-alike letters are not a number', toNumber('ZOZS'), null);
+eq('loose: ZOZS is read as 2025, and marked as a guess', [analyseNumber('ZOZS', { loose: true }).value, analyseNumber('ZOZS', { loose: true }).substituted], [2025, true]);
+eq('loose: a lone S is 5, marked as a guess', [analyseNumber('S', { loose: true }).value, analyseNumber('S', { loose: true }).substituted], [5, true]);
+eq('loose: ordinary words are still rejected', analyseNumber('Berat', { loose: true }).value, null);
+eq('loose: a clean number is not marked as a guess', analyseNumber('2025', { loose: true }).substituted, false);
+
 console.log(`OCR helpers: ${pass} passed${failures ? `, ${failures} FAILED` : ''}`);
 process.exit(failures ? 1 : 0);
