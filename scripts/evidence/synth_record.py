@@ -66,14 +66,19 @@ def render(case, idx, level):
     d1, m1, y1 = [int(x) for x in case['dob'].split('-')[::-1]]
     d2, m2, y2 = [int(x) for x in case['visit'].split('-')[::-1]]
     vals.update(dobD=d1, dobM=m1, dobY=y1, tglD=d2, tglM=m2, tglY=y2)
+    mrn_text = case['mrn'] if rnd.random() < 0.6 else f"{case['mrn'][:2]}-{case['mrn'][2:6]}-{case['mrn'][6:]}"
+    vals['mrn'] = case['mrn']
+    for kk, vv in case['rxBoxes'].items(): vals[{'dhpTablets': 'rxDhpTabs', 'dhpDays': 'rxDhpDays', 'pqTablets': 'rxPqTabs', 'pqDays': 'rxPqDays'}[kk]] = vv
     truth = {}
     for k, val in vals.items():
         comma = isinstance(val, float) and rnd.random() < 0.35
-        text = num_text(val, comma)
+        text = num_text(val, comma) if not isinstance(val, str) else val
+        if k == 'mrn': text = mrn_text
+        if val == '': truth[k] = ''; continue
         if k in ('dobD', 'dobM', 'tglD', 'tglM') and rnd.random() < 0.4: text = f'{val:02d}'     # some people write 04, some write 4
         truth[k] = val
         b = BOX[k]
-        write(img, text, b, font, color, rnd.uniform(0.52, 0.68) * mult, rnd.uniform(-4, 4), rnd.randint(-3, 8), rnd.randint(-5, 3), bold)
+        write(img, text, b, font, color, rnd.uniform(0.52, 0.68) * (0.8 if k == 'mrn' else 1.0) * mult, rnd.uniform(-4, 4), rnd.randint(-3, 8), rnd.randint(-5, 3), bold)
     tickbox = 'sexL' if case['sex'] == 'L' else 'sexP'
     tick(img, BOX[tickbox], color, rnd, rnd.choice(['tick', 'x']))
     # free text areas (not read by the app, but they are on the page and the OCR sees them)
@@ -81,7 +86,8 @@ def render(case, idx, level):
         b = FREE[area]; y = 4
         for line in wrap(plain(text), n)[:7]:
             write(img, line, {'x': b['x'], 'y': b['y'] + y / S * 0 + y / S, 'w': b['w'], 'h': 18}, font, color, 0.55 * mult, rnd.uniform(-2, 2), 0, rnd.randint(-2, 2), False); y += 20
-    para('keluhan', case['complaint'], 0.5, 16); para('asessmen', case['diagnosisText'], 0.5, 15); para('planning', case['planningText'], 0.5, 18)
+    para('keluhan', case['complaint'], 0.5, 16); para('asessmen', case['diagnosisText'], 0.5, 15)
+    if case['planningText']: para('planning', case['planningText'], 0.5, 18)
 
     page = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR); H, W = page.shape[:2]
     rot = {'easy': 0.8, 'mid': 3.0, 'hard': 5.5}[level] * rnd.choice([-1, 1]) * rnd.uniform(0.6, 1.0)
@@ -114,7 +120,8 @@ def render(case, idx, level):
     def poly(b):
         pts = np.float32([[b['x'] * S, b['y'] * S], [(b['x'] + b['w']) * S, b['y'] * S], [(b['x'] + b['w']) * S, (b['y'] + b['h']) * S], [b['x'] * S, (b['y'] + b['h']) * S]])
         return cv2.perspectiveTransform(pts[None], Mf.astype(np.float64))[0].tolist()
-    return out, {'truth': truth, 'sex': case['sex'], 'polys': {k: poly(b) for k, b in BOX.items()}, 'writer': writer, 'level': level}
+    polys = {k: poly(b) for k, b in BOX.items()}; polys.update({f'free_{k}': poly(b) for k, b in FREE.items()})
+    return out, {'truth': truth, 'sex': case['sex'], 'mrn': case['mrn'], 'texts': {'asessmen': plain(case['diagnosisText']), 'planning': plain(case['planningText'])}, 'polys': polys, 'writer': writer, 'level': level}
 
 if __name__ == '__main__':
     import os; os.makedirs('synth', exist_ok=True)

@@ -4,6 +4,7 @@
  "cases": [
   {
    "id": "C01",
+   "mrn": "00112648",
    "sex": "L",
    "ageMonths": 2,
    "dob": "2026-08-01",
@@ -19,7 +20,14 @@
     "weight": 5.4
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP ½ tab 1x1 selama 3 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1/2",
+    "dhpDays": "3",
+    "pqTablets": "",
+    "pqDays": ""
+   },
+   "regimenText": "DHP ½ tab 1x1 selama 3 hari",
    "note": "Infant under 6 months, correct: DHP only, no primaquine",
    "app": {
     "species": "falciparum",
@@ -48,6 +56,7 @@
   },
   {
    "id": "C02",
+   "mrn": "00120567",
    "sex": "P",
    "ageMonths": 3,
    "dob": "2026-07-01",
@@ -63,7 +72,14 @@
     "weight": 4.9
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP ⅓ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1/3",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP ⅓ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
    "note": "ERROR: primaquine given to an infant under 6 months",
    "app": {
     "species": "falciparum",
@@ -96,6 +112,7 @@
   },
   {
    "id": "C03",
+   "mrn": "00128486",
    "sex": "L",
    "ageMonths": 7,
    "dob": "2026-03-02",
@@ -111,7 +128,14 @@
     "weight": 8.3
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1/2",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
    "note": "Correct: P. falciparum, DHP and primaquine 1 day",
    "app": {
     "species": "falciparum",
@@ -141,6 +165,7 @@
   },
   {
    "id": "C04",
+   "mrn": "00136405",
    "sex": "P",
    "ageMonths": 9,
    "dob": "2026-01-02",
@@ -156,7 +181,14 @@
     "weight": 8.6
    },
    "diagnosisText": "Malaria vivaks",
-   "planningText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1/2",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "14"
+   },
+   "regimenText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
    "note": "Correct: P. vivax, primaquine 14 days",
    "app": {
     "species": "vivax",
@@ -186,6 +218,7 @@
   },
   {
    "id": "C05",
+   "mrn": "00144324",
    "sex": "L",
    "ageMonths": 11,
    "dob": "2025-11-02",
@@ -201,7 +234,14 @@
     "weight": 9
    },
    "diagnosisText": "Malaria vivaks",
-   "planningText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1/2",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
    "note": "ERROR: P. vivax with primaquine for 1 day instead of 14",
    "app": {
     "species": "vivax",
@@ -233,6 +273,7 @@
   },
   {
    "id": "C06",
+   "mrn": "00152243",
    "sex": "P",
    "ageMonths": 14,
    "dob": "2025-08-03",
@@ -248,7 +289,14 @@
     "weight": 9.3
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
    "note": "ERROR: DHP amount doubled",
    "app": {
     "species": "falciparum",
@@ -281,6 +329,7 @@
   },
   {
    "id": "C07",
+   "mrn": "00160162",
    "sex": "L",
    "ageMonths": 18,
    "dob": "2025-04-03",
@@ -296,7 +345,14 @@
     "weight": 10.4
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP dispersibel 1½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "planningText": "DHP dispersibel",
+   "rxBoxes": {
+    "dhpTablets": "1 1/2",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP dispersibel 1½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
    "note": "Correct: dispersible DHP",
    "app": {
     "species": "falciparum",
@@ -326,6 +382,7 @@
   },
   {
    "id": "C08",
+   "mrn": "00168081",
    "sex": "P",
    "ageMonths": 20,
    "dob": "2025-02-03",
@@ -341,7 +398,14 @@
     "weight": 11.3
    },
    "diagnosisText": "Malaria campuran (P.f + P.v)",
-   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "14"
+   },
+   "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
    "note": "Correct: mixed infection, primaquine 14 days",
    "app": {
     "species": "mixed",
@@ -371,6 +435,7 @@
   },
   {
    "id": "C09",
+   "mrn": "00176000",
    "sex": "L",
    "ageMonths": 24,
    "dob": "2024-10-04",
@@ -386,7 +451,14 @@
     "weight": 11.1
    },
    "diagnosisText": "Malaria malariae",
-   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
    "note": "ERROR: primaquine for P. malariae (none expected). Age 24 months: standing tables start here",
    "app": {
     "species": "malariae",
@@ -418,6 +490,7 @@
   },
   {
    "id": "C10",
+   "mrn": "00183919",
    "sex": "P",
    "ageMonths": 27,
    "dob": "2024-07-04",
@@ -433,7 +506,14 @@
     "weight": 12.3
    },
    "diagnosisText": "Malaria falsiparum (RDT negatif)",
-   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
    "note": "ERROR: blood test recorded NEGATIVE but an ACT was prescribed",
    "app": {
     "species": "falciparum",
@@ -465,6 +545,7 @@
   },
   {
    "id": "C11",
+   "mrn": "00191838",
    "sex": "L",
    "ageMonths": 30,
    "dob": "2024-04-04",
@@ -480,7 +561,14 @@
     "weight": 8.9
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP ½ tab 1x1 selama 5 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1/2",
+    "dhpDays": "5",
+    "pqTablets": "1/4",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP ½ tab 1x1 selama 5 hari; Primakuin ¼ tab 1x1 selama 1 hari",
    "note": "ERROR: DHP for 5 days. Severely stunted and underweight child",
    "app": {
     "species": "falciparum",
@@ -513,6 +601,7 @@
   },
   {
    "id": "C12",
+   "mrn": "00199757",
    "sex": "P",
    "ageMonths": 33,
    "dob": "2024-01-05",
@@ -528,7 +617,14 @@
     "weight": 19.2
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP 1½ tab 1x1 selama 3 hari; Primakuin ½ tab 1x1 selama 1 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1 1/2",
+    "dhpDays": "3",
+    "pqTablets": "1/2",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP 1½ tab 1x1 selama 3 hari; Primakuin ½ tab 1x1 selama 1 hari",
    "note": "Correct dose, obese child: the app adds the ideal-weight note",
    "app": {
     "species": "falciparum",
@@ -560,6 +656,7 @@
   },
   {
    "id": "C13",
+   "mrn": "00207676",
    "sex": "L",
    "ageMonths": 36,
    "dob": "2023-10-05",
@@ -575,7 +672,14 @@
     "weight": 10.2
    },
    "diagnosisText": "Malaria vivaks",
-   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "14"
+   },
+   "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
    "note": "Correct dose, severely wasted child (Gizi buruk)",
    "app": {
     "species": "vivax",
@@ -605,6 +709,7 @@
   },
   {
    "id": "C14",
+   "mrn": "00215595",
    "sex": "P",
    "ageMonths": 40,
    "dob": "2023-06-05",
@@ -620,7 +725,14 @@
     "weight": 13.8
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP dispersibel 3 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "planningText": "DHP dispersibel",
+   "rxBoxes": {
+    "dhpTablets": "3",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP dispersibel 3 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
    "note": "ERROR: dispersible DHP one tablet too many",
    "app": {
     "species": "falciparum",
@@ -652,6 +764,7 @@
   },
   {
    "id": "C15",
+   "mrn": "00223514",
    "sex": "L",
    "ageMonths": 45,
    "dob": "2023-01-01",
@@ -668,6 +781,13 @@
    },
    "diagnosisText": "Malaria berat",
    "planningText": "Artesunat IV dosis awal 47,4 mg (berat 15,8 kg); rujuk",
+   "rxBoxes": {
+    "dhpTablets": "",
+    "dhpDays": "",
+    "pqTablets": "",
+    "pqDays": ""
+   },
+   "regimenText": "Artesunat IV dosis awal 47,4 mg (berat 15,8 kg); rujuk",
    "note": "Severe malaria, artesunate dose correct (3 mg/kg under 20 kg)",
    "app": {
     "species": "falciparum",
@@ -695,6 +815,7 @@
   },
   {
    "id": "C16",
+   "mrn": "00231433",
    "sex": "P",
    "ageMonths": 50,
    "dob": "2022-08-01",
@@ -711,6 +832,13 @@
    },
    "diagnosisText": "Malaria berat",
    "planningText": "Artesunat IV dosis awal 43,4 mg (berat 18,1 kg); rujuk",
+   "rxBoxes": {
+    "dhpTablets": "",
+    "dhpDays": "",
+    "pqTablets": "",
+    "pqDays": ""
+   },
+   "regimenText": "Artesunat IV dosis awal 43,4 mg (berat 18,1 kg); rujuk",
    "note": "ERROR: artesunate calculated at 2.4 mg/kg instead of 3 mg/kg",
    "app": {
     "species": "falciparum",
@@ -740,6 +868,7 @@
   },
   {
    "id": "C17",
+   "mrn": "00239352",
    "sex": "L",
    "ageMonths": 56,
    "dob": "2022-02-02",
@@ -756,6 +885,13 @@
    },
    "diagnosisText": "Malaria berat",
    "planningText": "Artesunat IV dosis awal 60 mg (berat 20 kg); rujuk",
+   "rxBoxes": {
+    "dhpTablets": "",
+    "dhpDays": "",
+    "pqTablets": "",
+    "pqDays": ""
+   },
+   "regimenText": "Artesunat IV dosis awal 60 mg (berat 20 kg); rujuk",
    "note": "EDGE: exactly 20.0 kg. The guideline does not say which rate applies: the app must answer \"not sure\"",
    "app": {
     "species": "falciparum",
@@ -785,6 +921,7 @@
   },
   {
    "id": "C18",
+   "mrn": "00247271",
    "sex": "P",
    "ageMonths": 59,
    "dob": "2021-11-02",
@@ -800,7 +937,14 @@
     "weight": 17
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
    "note": "EDGE: exactly 17.0 kg (top of the >10-17 kg column). Correct dose. Last month of the 0-59 range",
    "app": {
     "species": "falciparum",
@@ -830,6 +974,7 @@
   },
   {
    "id": "C19",
+   "mrn": "00255190",
    "sex": "L",
    "ageMonths": 5,
    "dob": "2026-05-03",
@@ -845,7 +990,14 @@
     "weight": 6
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP ½ tab 1x1 selama 3 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1/2",
+    "dhpDays": "3",
+    "pqTablets": "",
+    "pqDays": ""
+   },
+   "regimenText": "DHP ½ tab 1x1 selama 3 hari",
    "note": "EDGE: exactly 6.0 kg and age 5 months: no primaquine, DHP 1/2",
    "app": {
     "species": "falciparum",
@@ -874,6 +1026,7 @@
   },
   {
    "id": "C20",
+   "mrn": "00263109",
    "sex": "P",
    "ageMonths": 12,
    "dob": "2025-10-03",
@@ -889,7 +1042,14 @@
     "weight": 9
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "planningText": "",
+   "rxBoxes": {
+    "dhpTablets": "1/2",
+    "dhpDays": "3",
+    "pqTablets": "1/4",
+    "pqDays": "1"
+   },
+   "regimenText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
    "note": "ERROR: standard primaquine given although G6PD deficiency is recorded",
    "app": {
     "species": "falciparum",
@@ -922,6 +1082,7 @@
   },
   {
    "id": "C21",
+   "mrn": "00271028",
    "sex": "L",
    "ageMonths": 1,
    "dob": "2026-09-04",
@@ -937,7 +1098,14 @@
     "weight": 4.4
    },
    "diagnosisText": "Malaria falsiparum",
-   "planningText": "DHP dispersibel 1 tab 1x1 selama 3 hari",
+   "planningText": "DHP dispersibel",
+   "rxBoxes": {
+    "dhpTablets": "1",
+    "dhpDays": "3",
+    "pqTablets": "",
+    "pqDays": ""
+   },
+   "regimenText": "DHP dispersibel 1 tab 1x1 selama 3 hari",
    "note": "EDGE: dispersible tablet below 5 kg: the table does not cover it, so the app must answer \"cannot check\"",
    "app": {
     "species": "falciparum",

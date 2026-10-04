@@ -6,7 +6,8 @@ meta = json.load(open('synth/meta.json'))
 A, B = int(sys.argv[1]), int(sys.argv[2])
 meta = meta[A:B]
 HEIGHTS = [96, 128, 160]
-NUM = ['sys', 'dia', 'hr', 'rr', 'temp', 'height', 'weight', 'dobD', 'dobM', 'dobY', 'tglD', 'tglM', 'tglY']
+NUM = ['sys', 'dia', 'hr', 'rr', 'temp', 'height', 'weight', 'dobD', 'dobM', 'dobY', 'tglD', 'tglM', 'tglY'] + ['mrn', 'rxDhpTabs', 'rxDhpDays', 'rxPqTabs', 'rxPqDays']
+TEXT_HEIGHTS = [480, 640]
 
 def stretch(gray):
     s = np.sort(gray.ravel()); lo = s[int(0.02 * (len(s) - 1))]; hi = s[int(0.85 * (len(s) - 1))]
@@ -18,6 +19,12 @@ def read_text(img):
     if not res: return ''
     pieces = sorted(res, key=lambda r: min(p[0] for p in r[0]))
     return ' '.join(r[1].strip() for r in pieces if r[1].strip())
+
+def read_lines(img):
+    res, _ = ocr(img, use_cls=False)
+    if not res: return ''
+    items = sorted(res, key=lambda r: (round(min(p[1] for p in r[0]) / 14), min(p[0] for p in r[0])))
+    return ' '.join(r[1].strip() for r in items if r[1].strip())
 
 def shrunk(poly, frac):
     x0, y0 = poly.min(axis=0); x1, y1 = poly.max(axis=0)
@@ -32,7 +39,14 @@ def ink_ratio(raw, stride, inner, margin=0.1, drop=60):           # same algorit
     if paper < 100: return 0.0
     return float((vals < paper - drop).sum() / vals.size)
 
-out = []; t0 = time.time()
+import glob
+done = {}
+for f in glob.glob('synth/ocr_part_*.json'):
+    for item in json.load(open(f)): done[item['name']] = item
+out = [done[m['name']] for m in meta if m['name'] in done]
+meta = [m for m in meta if m['name'] not in done]
+print('already done:', len(out), '| to do:', len(meta), flush=True)
+t0 = time.time()
 for m in meta:
     full = cv2.imread(f"synth/{m['name']}.jpg"); H, W = full.shape[:2]; k = min(1.0, 1600 / max(W, H))
     page = cv2.resize(full, None, fx=k, fy=k, interpolation=cv2.INTER_AREA) if k < 1 else full
@@ -56,6 +70,21 @@ for m in meta:
             c = cv2.copyMakeBorder(stretch(c), 24, 24, 24, 24, cv2.BORDER_CONSTANT, value=255)
             crops[str(h)] = read_text(cv2.cvtColor(c, cv2.COLOR_GRAY2BGR))
         fields[key] = {'truth': m['truth'][key], 'page': page_text, 'crops': crops, 'poly1600': (poly * k).round(1).tolist()}
+    texts = {}
+    for name in ('asessmen', 'planning'):
+        poly = np.array(m['polys']['free_' + name], dtype=np.float32)
+        pp = (poly * k).astype(np.float32)
+        inside = [t for t in tokens if cv2.pointPolygonTest(pp, (t['x'] + t['w'] / 2, t['y'] + t['h'] / 2), False) >= 0]
+        page_text = ' '.join(t['text'].strip() for t in sorted(inside, key=lambda t: (round(t['y'] / 14), t['x'])))
+        x0, y0, x1, y1 = shrunk(poly, 0.02)
+        crop = cv2.cvtColor(full[max(0, y0):y1, max(0, x0):x1], cv2.COLOR_BGR2GRAY)
+        crops = {}
+        for h in TEXT_HEIGHTS:
+            kk = h / crop.shape[0]
+            c = cv2.resize(crop, (max(16, int(crop.shape[1] * kk)), h), interpolation=cv2.INTER_AREA if kk < 1 else cv2.INTER_CUBIC)
+            c = cv2.copyMakeBorder(stretch(c), 24, 24, 24, 24, cv2.BORDER_CONSTANT, value=255)
+            crops[str(h)] = read_lines(cv2.cvtColor(c, cv2.COLOR_GRAY2BGR))
+        texts[name] = {'truth': m['texts'][name], 'page': page_text, 'crops': crops, 'poly1600': (poly * k).round(1).tolist()}
     ticks = {}
     for key in ('sexL', 'sexP'):
         poly = np.array(m['polys'][key], dtype=np.float32)
@@ -65,7 +94,7 @@ for m in meta:
         g = cv2.resize(g, (max(16, int(g.shape[1] * kk)), 96), interpolation=cv2.INTER_AREA if kk < 1 else cv2.INTER_CUBIC)
         raw = cv2.copyMakeBorder(g, 24, 24, 24, 24, cv2.BORDER_CONSTANT, value=255)
         ticks[key] = {'ratio': round(ink_ratio(raw, raw.shape[1], (24, 24, g.shape[1], 96)), 4), 'poly1600': (poly * k).round(1).tolist()}
-    out.append({'name': m['name'], 'level': m['level'], 'writer': m['writer'], 'sex': m['sex'], 'tokens': tokens, 'fields': fields, 'ticks': ticks})
+    out.append({'name': m['name'], 'level': m['level'], 'writer': m['writer'], 'sex': m['sex'], 'mrn': m['mrn'], 'tokens': tokens, 'fields': fields, 'texts': texts, 'ticks': ticks})
     print(m['name'], m['level'], 'tokens', len(tokens), ' %.0fs' % (time.time() - t0), flush=True)
-    json.dump(out, open(f'synth/ocr_part_{A}.json', 'w'), ensure_ascii=False)
+    json.dump(out, open('synth/ocr_part_resume.json', 'w'), ensure_ascii=False)
 print('DONE', flush=True)

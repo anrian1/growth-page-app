@@ -1,8 +1,7 @@
 import './style.css';
 import { registerSW } from 'virtual:pwa-register';
 import { assess } from './core/zscore.js';
-import { isValidCode } from './core/childcode.js';
-import { toCsv, toClinicCsv, toRecordCsv } from './csv.js';
+import { toLinkCsv, toAnalysisCsv, formatMrn } from './csv.js';
 import { addRecord, allRecords, clearAll, markExported } from './storage.js';
 import * as photo from './photo.js';
 import { readRecordPage, readRecordFields, MEDREC } from './session.js';
@@ -17,6 +16,7 @@ const pad = (n) => String(n).padStart(2, '0');
 const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 const VITALS = ['sys', 'dia', 'hr', 'rr', 'temp', 'height', 'weight'];
 const DATE_KEYS = ['dobD', 'dobM', 'dobY', 'tglD', 'tglM', 'tglY'];
+const RX_KEYS = ['rxDhpTabs', 'rxDhpDays', 'rxPqTabs', 'rxPqDays'];
 
 // ---------------------------------------------------------------- offline status
 function setStatus(kind, text) { const el = $('status'); el.className = `banner ${kind}`; el.textContent = text; }
@@ -40,6 +40,7 @@ function show(id, message) { const el = $(id); if (!el) return; el.textContent =
 const showPhotoError = (m) => show('photo-error', m);
 const setProgress = (t) => show('progress', t);
 const ddmmyyyy = (iso) => { const [y, m, d] = iso.split('-'); return `${d}/${m}/${y}`; };
+const cleanMrn = (t) => String(t ?? '').replace(/[\s\-.]/g, '');
 
 // ---------------------------------------------------------------- state
 let session = null;    // the photo that was read
@@ -79,9 +80,9 @@ function readDates(prefixOf) {
   return { dob: makeDate(get('dobD'), get('dobM'), get('dobY')), visit: makeDate(get('tglD'), get('tglM'), get('tglY')) };
 }
 
-function updateAge(prefixOf = (k) => `f-${k}`, ageEl = 'rc-age', flagsEl = 'rc-age-flags') {
-  const { dob, visit } = readDates(prefixOf);
-  const target = $(ageEl); const flags = $(flagsEl);
+function updateAge() {
+  const { dob, visit } = readDates((k) => `f-${k}`);
+  const target = $('rc-age'); const flags = $('rc-age-flags');
   if (!target) return null;
   const notes = [];
   if (!dob.ok) notes.push(`Tanggal lahir: ${dob.reason}.`);
@@ -95,17 +96,18 @@ function updateAge(prefixOf = (k) => `f-${k}`, ageEl = 'rc-age', flagsEl = 'rc-a
 
 function openConfirm() {
   const overlay = $('overlay');
-  overlay.innerHTML = renderRecordConfirm({ row, fields: MEDREC.fields });
+  overlay.innerHTML = renderRecordConfirm({ row, fields: MEDREC.fields, malariaInfo });
   overlay.hidden = false; overlay.scrollTop = 0;
   const put = (selector, rect, width) => {
-    const holder = overlay.querySelector(`[data-crop="${selector}"]`); if (!holder) return;
+    const holder = overlay.querySelector(`[data-crop="${selector}"]`); if (!holder || !rect) return;
     try { holder.appendChild(photo.thumb(session.img, rect, width)); } catch (e) { holder.textContent = '(gambar tidak tersedia)'; }
   };
-  for (const k of ['hr', 'rr', 'temp', 'height', 'weight']) put(k, row.rects[k], 220);
+  for (const k of ['hr', 'rr', 'temp', 'height', 'weight', ...RX_KEYS]) put(k, row.rects[k], 220);
+  put('mrn', row.rects.mrn, 320);
   for (const [k, rect] of Object.entries(row.strips)) put(`strip-${k}`, rect, 300);
   for (const [k, rect] of Object.entries(row.pictures)) put(`pic-${k}`, rect, 300);
-  $('c-json').value = JSON.stringify({ sex: row.sex, ticks: row.ticks.ratios, cells: row.cells, tokens: session.tokens.length, anchors: session.aligned.anchors });
-  overlay.querySelectorAll('[data-fill]').forEach((b) => b.addEventListener('click', () => { $(`f-${b.dataset.fill}`).value = b.dataset.text || b.dataset.value; updateAge(); }));
+  $('c-json').value = JSON.stringify({ sex: row.sex, ticks: row.ticks.ratios, tokens: session.tokens.length, piiDropped: session.piiDropped, anchors: session.aligned.anchors });
+  overlay.querySelectorAll('[data-fill]').forEach((b) => b.addEventListener('click', () => { const el = $(`f-${b.dataset.fill}`); if (el) el.value = b.dataset.text || b.dataset.value; updateAge(); }));
   for (const k of DATE_KEYS) $(`f-${k}`).addEventListener('input', () => updateAge());
   updateAge();
   $('c-ok').addEventListener('click', confirmValues);
@@ -114,17 +116,29 @@ function openConfirm() {
 function closeConfirm() { $('overlay').hidden = true; $('overlay').innerHTML = ''; }
 
 function sourceOf(cell, finalValue) {
-  if (finalValue === null) return null;
-  if (cell.value !== null && Math.abs(cell.value - finalValue) < 0.001) return cell.status === 'ok' ? 'photo_ok' : 'photo_checked';
-  if (cell.candidates.some((c) => Math.abs(c - finalValue) < 0.001)) return 'photo_chosen';
+  if (finalValue === null || finalValue === undefined) return null;
+  const eq = (a, b) => (typeof a === 'number' ? Math.abs(a - b) < 0.001 : a === b);
+  if (cell.value !== null && eq(cell.value, finalValue)) return cell.status === 'ok' ? 'photo_ok' : 'photo_checked';
+  if (cell.candidates.some((c) => eq(c, finalValue))) return 'photo_chosen';
   return 'photo_edited';
 }
 const SOURCE_RANK = { photo_ok: 0, photo_checked: 1, photo_chosen: 2, photo_edited: 3, typed: 4 };
 const leastCertain = (list) => list.filter(Boolean).reduce((w, s) => (SOURCE_RANK[s] > SOURCE_RANK[w] ? s : w), 'photo_ok');
 
+/** The prescription as it stands in the popup (or manual form): { species, test, type, form, dhpTablets, dhpDays, pqTablets, pqDays, artesunateMg } */
+function readRxFromPopup() {
+  const v = (id) => ($(id) ? $(id).value : '');
+  const art = parseNumber(v('rx-art-mg'));
+  return { species: v('rx-species'), test: v('rx-test') || 'none', type: v('rx-type') || 'uncomplicated', form: v('rx-form') || 'standard',
+    dhpTablets: v('f-rxDhpTabs'), dhpDays: intOrNull(v('f-rxDhpDays')), pqTablets: v('f-rxPqTabs'), pqDays: intOrNull(v('f-rxPqDays')), artesunateMg: Number.isNaN(art) ? null : art };
+}
+const rxHasContent = (rx) => !!(rx.species || rx.dhpTablets || rx.dhpDays || rx.pqTablets || rx.pqDays || rx.artesunateMg || rx.test !== 'none' || rx.type === 'severe');
+
 function confirmValues() {
   const sex = (document.querySelector('input[name=rc-sex]:checked') || {}).value;
   if (!sex) { show('confirm-error', 'Pilih jenis kelamin (LK atau PR).'); return; }
+  const mrn = cleanMrn($('f-mrn').value);
+  if (!/^\d{8}$/.test(mrn)) { show('confirm-error', 'Nomor rekam medis harus 8 angka. Ketik dari gambar.'); return; }
   const { dob, visit, age } = updateAge();
   if (!dob.ok) { show('confirm-error', `Tanggal lahir: ${dob.reason}.`); return; }
   if (!visit.ok) { show('confirm-error', `TGL kunjungan: ${visit.reason}.`); return; }
@@ -136,19 +150,23 @@ function confirmValues() {
     values[k] = v;
   }
   if (values.weight === null) { show('confirm-error', 'Isi berat badan (BB): dibutuhkan untuk status gizi dan dosis.'); return; }
-  const code = $('rc-code').value.trim();
-  if (code !== '' && !isValidCode(code)) { show('confirm-error', 'Kode pasien tidak cocok (angka terakhir adalah angka cek). Periksa lagi.'); return; }
-  const needsCheck = Object.values(row.cells).some((x) => x.status !== 'ok') || row.sex.status !== 'ok';
+  const needsCheck = Object.values(row.cells).some((x) => x.status !== 'ok' && x.status !== 'empty') || row.sex.status !== 'ok';
   if (needsCheck && !($('c-check') && $('c-check').checked)) { show('confirm-error', 'Centang "Saya sudah membandingkan semua angka dengan tulisan di foto".'); return; }
-
+  const rx = readRxFromPopup();
+  const auto = row.rx.fields; const autoAny = RX_KEYS.some((k) => row.cells[k].value !== null) || ['species', 'testResult', 'artesunateMg'].some((k) => auto[k].value !== null);
+  if (autoAny && !($('c-rx-check') && $('c-rx-check').checked)) { show('confirm-error', 'Centang "Sesuai tulisan" setelah membandingkan diagnosis dan resep dengan gambarnya.'); return; }
+  const unchanged = rx.species === (auto.species.value ?? '') && rx.dhpTablets === (row.cells.rxDhpTabs.value ?? '') && rx.dhpDays === row.cells.rxDhpDays.value && rx.pqTablets === (row.cells.rxPqTabs.value ?? '') && rx.pqDays === row.cells.rxPqDays.value
+    && (rx.artesunateMg ?? null) === (auto.artesunateMg.value ?? null);
+  const rxSource = !rxHasContent(rx) ? 'not_recorded' : !autoAny ? 'typed' : unchanged ? 'photo_confirmed' : 'photo_edited';
   const sources = {};
   for (const k of VITALS) sources[k] = sourceOf(row.cells[k], values[k]);
+  sources.mrn = sourceOf(row.cells.mrn, mrn);
   sources.dob = leastCertain(['dobD', 'dobM', 'dobY'].map((k) => sourceOf(row.cells[k], intOrNull($(`f-${k}`).value))));
   sources.visit = leastCertain(['tglD', 'tglM', 'tglY'].map((k) => sourceOf(row.cells[k], intOrNull($(`f-${k}`).value))));
   sources.sex = sex === row.sex.sex ? (row.sex.status === 'ok' ? 'photo_ok' : 'photo_checked') : row.sex.sex === null ? 'photo_chosen' : 'photo_edited';
-  const ocr = { sexStatus: row.sex.status, cells: Object.fromEntries(Object.entries(row.cells).map(([k, c]) => [k, { status: c.status, value: c.value, candidates: c.candidates }])) };
+  const ocr = { sexStatus: row.sex.status, cells: Object.fromEntries(Object.entries(row.cells).map(([k, c]) => [k, k === 'mrn' ? { status: c.status } : { status: c.status, value: c.value, candidates: c.candidates }])) };
   closeConfirm();
-  showResult({ sex, dob, visit, age, values, sources, code, ocr });
+  showResult({ sex, mrn, dob, visit, age, values, sources, ocr, rx, rxSource, rxFromPhoto: autoAny });
 }
 
 // ---------------------------------------------------------------- manual entry (no photo)
@@ -156,6 +174,8 @@ $('manual-go').addEventListener('click', () => {
   showPhotoError(''); show('manual-error', ''); $('result').hidden = true; current = null;
   const sex = (document.querySelector('input[name=man-sex]:checked') || {}).value;
   if (!sex) { show('manual-error', 'Pilih jenis kelamin.'); return; }
+  const mrn = cleanMrn($('man-mrn').value);
+  if (!/^\d{8}$/.test(mrn)) { show('manual-error', 'Nomor rekam medis harus 8 angka.'); return; }
   const d = readDates((k) => `man-${k}`);
   if (!d.dob.ok) { show('manual-error', `Tanggal lahir: ${d.dob.reason}.`); return; }
   if (!d.visit.ok) { show('manual-error', `TGL kunjungan: ${d.visit.reason}.`); return; }
@@ -168,50 +188,60 @@ $('manual-go').addEventListener('click', () => {
     values[k] = v;
   }
   if (values.weight === null) { show('manual-error', 'Isi berat badan (BB).'); return; }
-  const sources = Object.fromEntries([...VITALS, 'dob', 'visit', 'sex'].map((k) => [k, k === 'sex' || k === 'dob' || k === 'visit' || values[k] !== null ? 'typed' : null]));
-  showResult({ sex, dob: d.dob, visit: d.visit, age: a, values, sources, code: '', ocr: null });
+  const sources = Object.fromEntries([...VITALS, 'dob', 'visit', 'sex', 'mrn'].map((k) => [k, 'typed']));
+  showResult({ sex, mrn, dob: d.dob, visit: d.visit, age: a, values, sources, ocr: null, rx: null, rxSource: 'not_recorded', rxFromPhoto: false });
 });
 
 // ---------------------------------------------------------------- result
-function showResult({ sex, dob, visit, age, values, sources, code, ocr }) {
+async function showResult({ sex, mrn, dob, visit, age, values, sources, ocr, rx, rxSource, rxFromPhoto }) {
   const ranges = Object.fromEntries(VITALS.map((k) => [k, MEDREC.fields[k].range]));
   const rc = checkRecordValues(values, ranges);
   const nutrition = age.scope === 'nutrition' ? assess({ sex, ageMonths: age.ageMonths, weightKg: values.weight, lengthCm: values.height }) : null;
   const ageNotes = age.flags.filter((f) => !/belum dipasang/.test(f));        // the 5-18 years note is information, not a warning
-  const flags = [...age.flags, ...rc.flags, ...(nutrition ? nutrition.flags : [])];
-  const mustCheck = ageNotes.length > 0 || rc.flags.length > 0 || (nutrition && nutrition.action === 'FLAG_CONFIRM');
+  // the same child, or the same number twice: compare with what is already saved on this phone
+  const idNotes = [];
+  for (const r of await allRecords()) {
+    if (r.type !== 'record' || r.mrn !== mrn) continue;
+    if (r.dob && r.dob !== dob.iso) idNotes.push('Nomor rekam medis ini sudah tersimpan dengan tanggal lahir yang berbeda. Periksa nomor RM dan tanggal lahir.');
+    else if (r.visitDate === visit.iso) idNotes.push('Nomor rekam medis dan tanggal kunjungan yang sama sudah tersimpan (data ganda?).');
+  }
+  const flags = [...age.flags, ...rc.flags, ...idNotes, ...(nutrition ? nutrition.flags : [])];
+  const mustCheck = ageNotes.length > 0 || rc.flags.length > 0 || idNotes.length > 0 || (nutrition && nutrition.action === 'FLAG_CONFIRM');
+  const pre = rx && rxHasContent(rx) ? rx : null;
   current = {
-    sex, ageMonths: age.ageMonths, ageYears: age.ageYears, ageText: age.ageText, scope: age.scope, visit: ddmmyyyy(visit.iso), visitIso: visit.iso, dobIso: dob.iso,
+    sex, mrn, ageMonths: age.ageMonths, ageYears: age.ageYears, ageText: age.ageText, scope: age.scope, visit: ddmmyyyy(visit.iso), visitIso: visit.iso, dobIso: dob.iso,
     values, weightKg: values.weight, weightUncertain: !!(nutrition && nutrition.action === 'FLAG_CONFIRM'), bbpbCategory: nutrition ? nutrition.category.bbpb : null,
-    sources, code, ocr, nutrition, flags, mustCheck, malaria: null,
+    sources, ocr, nutrition, flags, mustCheck, malaria: null, rx: pre, rxUsed: !!(pre && rxFromPhoto), rxSource, code: '',
   };
   $('result').innerHTML = renderRecordResult(current, malariaInfo);
   $('result').hidden = false;
   $('save').addEventListener('click', saveCurrent);
   wireMalaria();
+  if (current.rxUsed && $('ma-go')) { $('ma-details').open = true; runDoseCheck(); }      // everything was read and confirmed: show the dose check at once
   $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// ---------------------------------------------------------------- malaria dose check (optional, under the result)
+// ---------------------------------------------------------------- malaria dose check (under the result)
+function runDoseCheck() {
+  const num = (id) => { const v = parseNumber($(id).value); return v === null || Number.isNaN(v) ? undefined : v; };
+  const input = {
+    weightKg: current.weightKg, weightUncertain: current.weightUncertain, ageMonths: current.ageMonths,
+    species: $('ma-species').value, formulation: $('ma-form').value, testResult: $('ma-test').value, treatment: $('ma-type').value,
+    dhpTablets: $('ma-dhp-tabs').value, dhpDays: num('ma-dhp-days'), pqTablets: $('ma-pq-tabs').value, pqDays: num('ma-pq-days'),
+    artesunateMg: num('ma-art-mg'), bbpbCategory: current.bbpbCategory, pregnancy: $('ma-preg') ? $('ma-preg').value : undefined, g6pd: $('ma-g6pd').value,
+  };
+  const outcome = checkRegimen(malariaInfo.pack, input);
+  $('ma-out').innerHTML = renderMalariaOut(outcome, malariaInfo.pack);
+  current.malaria = {
+    status: outcome.status, species: input.species, formulation: input.treatment === 'severe' ? 'artesunate' : input.formulation, treatment: input.treatment, testResult: input.testResult,
+    dhpTablets: input.dhpTablets, dhpDays: input.dhpDays, pqTablets: input.pqTablets, pqDays: input.pqDays, artesunateMg: input.artesunateMg, g6pd: input.g6pd, pregnancy: input.pregnancy,
+    findings: outcome.findings.map((f) => ({ id: f.id, level: f.level })), packId: malariaInfo.pack.id, packDraft: malariaInfo.pack.draft,
+  };
+}
 function wireMalaria() {
   if (!$('ma-go')) return;
   $('ma-type').addEventListener('change', () => { const severe = $('ma-type').value === 'severe'; $('ma-severe').hidden = !severe; $('ma-uncomplicated').hidden = severe; });
-  $('ma-go').addEventListener('click', () => {
-    const num = (id) => { const v = parseNumber($(id).value); return v === null || Number.isNaN(v) ? undefined : v; };
-    const input = {
-      weightKg: current.weightKg, weightUncertain: current.weightUncertain, ageMonths: current.ageMonths,
-      species: $('ma-species').value, formulation: $('ma-form').value, testResult: $('ma-test').value, treatment: $('ma-type').value,
-      dhpTablets: $('ma-dhp-tabs').value, dhpDays: num('ma-dhp-days'), pqTablets: $('ma-pq-tabs').value, pqDays: num('ma-pq-days'),
-      artesunateMg: num('ma-art-mg'), bbpbCategory: current.bbpbCategory, pregnancy: $('ma-preg') ? $('ma-preg').value : undefined, g6pd: $('ma-g6pd').value,
-    };
-    const outcome = checkRegimen(malariaInfo.pack, input);
-    $('ma-out').innerHTML = renderMalariaOut(outcome, malariaInfo.pack);
-    current.malaria = {
-      status: outcome.status, species: input.species, formulation: input.treatment === 'severe' ? 'artesunate' : input.formulation, treatment: input.treatment, testResult: input.testResult,
-      dhpTablets: input.dhpTablets, dhpDays: input.dhpDays, pqTablets: input.pqTablets, pqDays: input.pqDays, artesunateMg: input.artesunateMg, g6pd: input.g6pd, pregnancy: input.pregnancy,
-      findings: outcome.findings.map((f) => ({ id: f.id, level: f.level })), packId: malariaInfo.pack.id, packDraft: malariaInfo.pack.draft,
-    };
-  });
+  $('ma-go').addEventListener('click', runDoseCheck);
 }
 
 async function saveCurrent() {
@@ -220,10 +250,10 @@ async function saveCurrent() {
   const n = current.nutrition;
   const id = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`);
   await addRecord({
-    id, type: 'record', patientCode: current.code || null, visitDate: current.visitIso, dob: current.dobIso, sex: current.sex, ageMonths: current.ageMonths,
-    values: current.values, sources: current.sources, ocr: current.ocr,
+    id, type: 'record', mrn: current.mrn, visitDate: current.visitIso, dob: current.dobIso, sex: current.sex, ageMonths: current.ageMonths,
+    values: current.values, sources: current.sources, ocr: current.ocr, rxSource: current.rxSource,
     nutrition: n ? { status: n.action, z: n.zRounded, category: n.category } : { status: current.scope === 'dose-only' ? 'not_calculated_5_18y' : 'not_calculated' },
-    flags: current.flags, malaria: current.malaria, appVersion: APP_VERSION, createdAt: new Date().toISOString(), exportedAt: null,
+    flags: current.flags, malaria: current.malaria, appVersion: APP_VERSION, createdAt: new Date().toISOString(), exportedAt: null, analysisExportedAt: null,
   });
   current = null;
   $('result').hidden = true;
@@ -233,13 +263,11 @@ async function saveCurrent() {
 
 // ---------------------------------------------------------------- records and export
 async function refreshRecords() {
-  const records = await allRecords();
+  const records = (await allRecords()).filter((r) => r.type === 'record');
   const fresh = records.filter((r) => !r.exportedAt).length;
-  $('records-summary').textContent = records.length === 0 ? 'Belum ada data.' : `${records.length} data tersimpan, ${fresh} belum diekspor.`;
-  const ageOf = (r) => (r.type === 'clinic' ? `${r.ageYears} th` : `${r.ageMonths} bln`);
-  const kindOf = (r) => ({ clinic: 'klinik', growth: 'anak', record: 'rekam medis' }[r.type] || 'anak');
-  $('records-list').innerHTML = records.length === 0 ? '' : `<table><thead><tr><th>Tanggal</th><th>Jenis</th><th>Usia</th><th>Status</th></tr></thead><tbody>${
-    records.slice(0, 10).map((r) => `<tr><td>${esc(r.visitDate)}</td><td>${kindOf(r)}</td><td>${esc(ageOf(r))}</td><td>${r.exportedAt ? 'sudah diekspor' : 'baru'}</td></tr>`).join('')}</tbody></table>`;
+  $('records-summary').textContent = records.length === 0 ? 'Belum ada data.' : `${records.length} data tersimpan, ${fresh} belum diekspor ke file tautan.`;
+  $('records-list').innerHTML = records.length === 0 ? '' : `<table><thead><tr><th>No. RM</th><th>Tanggal</th><th>Usia</th><th>Status</th></tr></thead><tbody>${
+    records.slice(0, 10).map((r) => `<tr><td>${esc(formatMrn(r.mrn))}</td><td>${esc(r.visitDate)}</td><td>${esc(r.ageMonths)} bln</td><td>${r.exportedAt ? 'sudah diekspor' : 'baru'}</td></tr>`).join('')}</tbody></table>`;
 }
 
 async function shareOrDownload(files) {
@@ -255,20 +283,23 @@ async function shareOrDownload(files) {
   return true;
 }
 
-async function exportRecords(onlyNew) {
-  const records = (await allRecords()).filter((r) => !onlyNew || !r.exportedAt);
-  if (records.length === 0) { $('records-summary').textContent = 'Tidak ada data untuk diekspor.'; return; }
+/** kind: 'link' | 'analysis' | 'both'; onlyNew: only records not yet exported in that file */
+async function exportRecords(kind, onlyNew) {
+  const all = (await allRecords()).filter((r) => r.type === 'record').reverse();
   const when = new Date().toISOString(); const day = when.slice(0, 10);
-  const oldest = (type) => records.filter((r) => (r.type || 'growth') === type).reverse();
-  const files = [];
-  if (oldest('record').length) files.push({ name: `rekam-medis-${day}.csv`, text: toRecordCsv(oldest('record'), { includeDob: $('include-dob').checked, exportedAt: when }) });
-  if (oldest('growth').length) files.push({ name: `kia-tumbuh-${day}.csv`, text: toCsv(oldest('growth'), { includeDob: $('include-dob').checked, exportedAt: when }) });
-  if (oldest('clinic').length) files.push({ name: `kunjungan-klinik-${day}.csv`, text: toClinicCsv(oldest('clinic'), { exportedAt: when }) });
-  const done = await shareOrDownload(files);
-  if (done) { await markExported(records.map((r) => r.id), when); await refreshRecords(); }
+  const files = []; const touched = { link: [], analysis: [] };
+  if (kind === 'link' || kind === 'both') { const rs = all.filter((r) => !onlyNew || !r.exportedAt); if (rs.length) { files.push({ name: `rekam-medis-tautan-${day}.csv`, text: toLinkCsv(rs, { exportedAt: when }) }); touched.link = rs.map((r) => r.id); } }
+  if (kind === 'analysis' || kind === 'both') { const rs = all.filter((r) => !onlyNew || !r.analysisExportedAt); if (rs.length) { files.push({ name: `rekam-medis-analisis-${day}.csv`, text: toAnalysisCsv(rs, { exportedAt: when }) }); touched.analysis = rs.map((r) => r.id); } }
+  if (files.length === 0) { $('records-summary').textContent = 'Tidak ada data untuk diekspor.'; return; }
+  if (await shareOrDownload(files)) {
+    if (touched.link.length) await markExported(touched.link, when, 'exportedAt');
+    if (touched.analysis.length) await markExported(touched.analysis, when, 'analysisExportedAt');
+    await refreshRecords();
+  }
 }
-$('export-new').addEventListener('click', () => exportRecords(true));
-$('export-all').addEventListener('click', () => exportRecords(false));
+$('export-link').addEventListener('click', () => exportRecords('link', true));
+$('export-analysis').addEventListener('click', () => exportRecords('analysis', true));
+$('export-all').addEventListener('click', () => exportRecords('both', false));
 $('delete-all').addEventListener('click', async () => {
   if (!window.confirm('Hapus SEMUA data di HP ini? Ini tidak bisa dibatalkan. Ekspor dulu jika perlu.')) return;
   await clearAll();

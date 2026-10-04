@@ -15,7 +15,8 @@ function worldFor(name) {
   const al = alignByTemplate(MEDREC, sheet.tokens);
   const fieldRect = Object.fromEntries(Object.keys(MEDREC.fields).map((k) => [k, readRect(placeBox(al.H, MEDREC.fields[k].box))]));
   const tickRect = Object.fromEntries(Object.keys(MEDREC.ticks).map((k) => [k, readRect(placeBox(al.H, MEDREC.ticks[k].box), 0.22)]));
-  return { sheet, fieldRect, tickRect };
+  const textRect = Object.fromEntries(['asessmen', 'planning'].map((k) => { const poly = placeBox(al.H, MEDREC.freeText[k]); const xs = poly.map((q) => q[0]); const ys = poly.map((q) => q[1]); return [k, { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) }]; }));
+  return { sheet, fieldRect, tickRect, textRect };
 }
 const near = (a, b) => Math.abs(a.x - b.x) < 0.01 && Math.abs(a.y - b.y) < 0.01;
 
@@ -29,6 +30,12 @@ export const engine = {
     if (picture.kind === 'page') {
       if (script.page === 'junk') return { lines: [[{ text: 'Tabel Pertumbuhan Anak', box: { x: 1, y: 1, width: 100, height: 20 } }]] };
       return { lines: [w.sheet.tokens.map((t) => ({ text: t.text, confidence: t.conf, box: { x: t.x, y: t.y, width: t.w, height: t.h } }))] };
+    }
+    const textKey = Object.keys(w.textRect).find((k) => near(w.textRect[k], picture.rect));
+    if (textKey) {
+      const said = script.say ? script.say({ key: textKey, height: picture.height, truth: w.sheet.texts[textKey].truth }) : undefined;
+      const text = said !== undefined ? said : w.sheet.texts[textKey].crops[String(picture.height)] ?? '';
+      return { lines: text === null || text === '' ? [] : [[{ text, box: { x: 0, y: 0, width: 10, height: 10 } }]] };
     }
     const key = Object.keys(w.fieldRect).find((k) => near(w.fieldRect[k], picture.rect));
     if (!key) return { lines: [] };

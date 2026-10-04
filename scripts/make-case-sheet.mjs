@@ -52,6 +52,7 @@ const SPEC = [
   { id: 'C20', sex: 'P', age: 12, visit: '2026-10-03', hz: 0.1, wz: -0.1, species: 'falciparum', test: 'positive', form: 'standard', g6pd: 'deficient', note: 'ERROR: standard primaquine given although G6PD deficiency is recorded' },
   { id: 'C21', sex: 'L', age: 1, visit: '2026-10-04', hz: -0.2, exactWeight: 4.4, species: 'falciparum', test: 'positive', form: 'dispersible', dhpTablets: '1', note: 'EDGE: dispersible tablet below 5 kg: the table does not cover it, so the app must answer "cannot check"' },
 ];
+const mrnFor = (i) => { let x = (i * 7919 + 104729) % 100000000; return String(x).padStart(8, '0'); };   // invented, stable, 8 digits
 const COMPLAINTS = ['demam 3 hari, menggigil', 'demam tinggi, muntah', 'demam naik turun, lemas', 'demam 2 hari, tidak mau makan', 'demam, menggigil, pucat', 'demam 4 hari, berkeringat'];
 const DIAG = { falciparum: 'Malaria falsiparum', vivax: 'Malaria vivaks', mixed: 'Malaria campuran (P.f + P.v)', malariae: 'Malaria malariae' };
 const vitalsFor = (age, i) => {                                  // plausible resting values, with some variety
@@ -90,10 +91,14 @@ const cases = SPEC.map((c, i) => {
     const dhpLabel = TAB[dhpTablets] ?? dhpTablets;
     regimenText = `DHP${input.formulation === 'dispersible' ? ' dispersibel' : ''} ${dhpLabel} tab 1x1 selama ${dhpDays} hari` + (pqTablets !== '0' ? `; Primakuin ${TAB[pqTablets] ?? pqTablets} tab 1x1 selama ${pqDays} hari` : '');
   }
+  const disp = (v) => (v === undefined || v === null || v === '' || v === '0' ? '' : v === '3/2' ? '1 1/2' : v);
+  const rxBoxes = input.treatment === 'severe' ? { dhpTablets: '', dhpDays: '', pqTablets: '', pqDays: '' }
+    : { dhpTablets: disp(input.dhpTablets), dhpDays: String(input.dhpDays ?? ''), pqTablets: disp(input.pqTablets), pqDays: input.pqDays ? String(input.pqDays) : '' };
+  const planningFree = input.treatment === 'severe' ? regimenText : (input.formulation === 'dispersible' ? 'DHP dispersibel' : '');
   const dose = checkRegimen(pack, input);
   const dx = (input.treatment === 'severe' ? 'Malaria berat' : DIAG[c.species]) + (c.test === 'negative' ? ' (RDT negatif)' : '');
   return {
-    id: c.id, sex: c.sex, ageMonths: c.age, dob, visit: c.visit, complaint: COMPLAINTS[i % COMPLAINTS.length], vitals: v, diagnosisText: dx, planningText: regimenText, note: c.note,
+    id: c.id, mrn: mrnFor(i + 1), sex: c.sex, ageMonths: c.age, dob, visit: c.visit, complaint: COMPLAINTS[i % COMPLAINTS.length], vitals: v, diagnosisText: dx, planningText: planningFree, rxBoxes, regimenText, note: c.note,
     app: { species: c.species, testResult: c.test, treatment: input.treatment, formulation: input.formulation, dhpTablets: input.dhpTablets, dhpDays: input.dhpDays, pqTablets: input.pqTablets, pqDays: input.pqDays, artesunateMg: input.artesunateMg, g6pd: input.g6pd },
     expected: {
       nutritionAction: nutrition.action, bbu: nutrition.category.bbu, pbu: nutrition.category.pbu, bbpb: nutrition.category.bbpb, zBbu: nutrition.zRounded.bbu, zPbu: nutrition.zRounded.pbu, zBbpb: nutrition.zRounded.bbpb,
@@ -104,8 +109,8 @@ const cases = SPEC.map((c, i) => {
 
 writeFileSync(join(root, 'docs/case-sheet.json'), JSON.stringify({ synthetic: true, note: 'All children are invented. Expected outputs are computed by the app code (pipeline fidelity, not clinical truth).', cases }, null, 1) + '\n');
 const q = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-const head = ['case', 'sex', 'dob_dd', 'dob_mm', 'dob_yyyy', 'tgl_dd', 'tgl_mm', 'tgl_yyyy', 'age_months', 'td_sys', 'td_dia', 'hr', 'rr', 't', 'tb_cm', 'bb_kg', 'species', 'blood_test', 'treatment', 'formulation', 'dhp_tabs_day', 'dhp_days', 'pq_tabs_day', 'pq_days', 'artesunate_mg', 'g6pd', 'exp_bbu', 'exp_pbu_tbu', 'exp_bbpb_bbtb', 'exp_nutrition_action', 'exp_dose_status', 'exp_dose_checks', 'scenario'];
-const rows = cases.map((c) => { const [dy, dm, dd] = c.dob.split('-'); const [vy, vm, vd] = c.visit.split('-'); return [c.id, c.sex, dd, dm, dy, vd, vm, vy, c.ageMonths, c.vitals.sys, c.vitals.dia, c.vitals.hr, c.vitals.rr, c.vitals.temp, c.vitals.height, c.vitals.weight, c.app.species, c.app.testResult, c.app.treatment, c.app.formulation, c.app.dhpTablets ?? '', c.app.dhpDays ?? '', c.app.pqTablets ?? '', c.app.pqDays ?? '', c.app.artesunateMg ?? '', c.app.g6pd, c.expected.bbu, c.expected.pbu, c.expected.bbpb, c.expected.nutritionAction, c.expected.doseStatus, c.expected.doseChecks.join(' | '), c.note]; });
+const head = ['case', 'mrn', 'sex', 'dob_dd', 'dob_mm', 'dob_yyyy', 'tgl_dd', 'tgl_mm', 'tgl_yyyy', 'age_months', 'td_sys', 'td_dia', 'hr', 'rr', 't', 'tb_cm', 'bb_kg', 'species', 'blood_test', 'treatment', 'formulation', 'dhp_tabs_day', 'dhp_days', 'pq_tabs_day', 'pq_days', 'artesunate_mg', 'g6pd', 'exp_bbu', 'exp_pbu_tbu', 'exp_bbpb_bbtb', 'exp_nutrition_action', 'exp_dose_status', 'exp_dose_checks', 'scenario'];
+const rows = cases.map((c) => { const [dy, dm, dd] = c.dob.split('-'); const [vy, vm, vd] = c.visit.split('-'); return [c.id, `${c.mrn.slice(0, 2)}-${c.mrn.slice(2, 6)}-${c.mrn.slice(6)}`, c.sex, dd, dm, dy, vd, vm, vy, c.ageMonths, c.vitals.sys, c.vitals.dia, c.vitals.hr, c.vitals.rr, c.vitals.temp, c.vitals.height, c.vitals.weight, c.app.species, c.app.testResult, c.app.treatment, c.app.formulation, c.app.dhpTablets ?? '', c.app.dhpDays ?? '', c.app.pqTablets ?? '', c.app.pqDays ?? '', c.app.artesunateMg ?? '', c.app.g6pd, c.expected.bbu, c.expected.pbu, c.expected.bbpb, c.expected.nutritionAction, c.expected.doseStatus, c.expected.doseChecks.join(' | '), c.note]; });
 writeFileSync(join(root, 'docs/case-sheet-answer-key.csv'), '\uFEFF' + [head, ...rows].map((r) => r.map(q).join(',')).join('\r\n') + '\r\n');
 const catCount = {}; for (const c of cases) for (const k of ['bbu', 'pbu', 'bbpb']) catCount[c.expected[k]] = (catCount[c.expected[k]] || 0) + 1;
 console.log(cases.length, 'cases. Nutrition categories seen:', JSON.stringify(catCount));

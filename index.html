@@ -38,6 +38,7 @@
         </fieldset>
         <div class="trio"><label>Lahir: tgl<input id="man-dobD" inputmode="numeric" /></label><label>bln<input id="man-dobM" inputmode="numeric" /></label><label>tahun<input id="man-dobY" inputmode="numeric" /></label></div>
         <div class="trio"><label>TGL: tgl<input id="man-tglD" inputmode="numeric" /></label><label>bln<input id="man-tglM" inputmode="numeric" /></label><label>tahun<input id="man-tglY" inputmode="numeric" /></label></div>
+        <label>Nomor rekam medis (8 angka)<input id="man-mrn" inputmode="numeric" maxlength="8" autocomplete="off" /></label>
         <div class="trio"><label>TD sistolik<input id="man-sys" inputmode="numeric" /></label><label>diastolik<input id="man-dia" inputmode="numeric" /></label><label>HR<input id="man-hr" inputmode="numeric" /></label></div>
         <div class="trio"><label>RR<input id="man-rr" inputmode="numeric" /></label><label>T (&deg;C)<input id="man-temp" inputmode="decimal" /></label><label>TB (cm)<input id="man-height" inputmode="decimal" /></label></div>
         <label>BB (kg)<input id="man-weight" inputmode="decimal" /></label>
@@ -52,11 +53,12 @@
       <h2 id="records-title">Data tersimpan</h2>
       <p id="records-summary" class="muted"></p>
       <div id="records-list"></div>
-      <label class="inline"><input id="include-dob" type="checkbox" /> Sertakan tanggal lahir di file CSV</label>
+      <p class="muted"><strong>File tautan</strong> (nomor RM + tanggal lahir) untuk sistem klinik sendiri: data pribadi, simpan di dalam klinik. <strong>File analisis</strong> tanpa nomor RM dan tanggal lahir: untuk dibagikan. Nama, alamat, telepon dan nomor BPJS tidak pernah dibaca, disimpan atau diekspor.</p>
       <div class="row">
-        <button id="export-new" class="secondary" type="button">Ekspor data baru (CSV)</button>
-        <button id="export-all" class="secondary" type="button">Ekspor semua</button>
+        <button id="export-link" class="secondary" type="button">Ekspor file tautan (baru)</button>
+        <button id="export-analysis" class="secondary" type="button">Ekspor file analisis (baru)</button>
       </div>
+      <button id="export-all" class="secondary" type="button">Ekspor semua (kedua file)</button>
       <button id="delete-all" class="danger" type="button">Hapus semua data di HP ini</button>
     </section>
   </main>

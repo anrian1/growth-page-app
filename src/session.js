@@ -8,6 +8,8 @@ import { TEMPLATE } from './template.js';
 import { applyH } from './align.js';
 import { alignClinicPage, alignByTemplate, placeBox, readRect, CLINIC, CLINIC_FIELDS } from './clinic.js';
 import MEDREC from './templates/medical-record.js';
+import { voteRx } from './rxparse.js';
+import { FIELD_PARSERS } from './fieldparse.js';
 
 export const PAGE_MAX_SIDE = 1600;     // the whole-page reading is done on a picture no bigger than this
 const CELL_OCR_OPTIONS = { minimumConfidence: 0.2 };   // keep weak readings: they are only votes, and a person confirms
@@ -126,8 +128,20 @@ export async function readRecordPage({ file, engine, photo, onProgress = () => {
   onProgress('Membaca halaman…');
   const result = await engine.recognize(pageCanvas);
   const tokens = (result.lines || []).flat().map((t) => ({ text: t.text, x: t.box.x, y: t.box.y, w: t.box.width, h: t.box.height }));
-  return { img, pageCanvas, tokens, aligned: alignByTemplate(MEDREC, tokens), factor: img.width / pageCanvas.width };
+  const aligned = alignByTemplate(MEDREC, tokens);
+  // PRIVACY: the page reader sees the whole page, including the handwritten name, address, phone and BPJS number.
+  // Right after the page is aligned, every piece of text inside those areas is thrown away. Nothing later can use, show, save or export it.
+  let safe = tokens; let piiDropped = 0;
+  if (aligned.ok) {
+    const areas = MEDREC.pii.map((r) => placeBox(aligned.H, r));
+    safe = tokens.filter((t) => { const hit = areas.some((a) => inside(a, t.x + t.w / 2, t.y + t.h / 2)); if (hit) piiDropped += 1; return !hit; });
+  }
+  return { img, pageCanvas, tokens: safe, piiDropped, aligned, factor: img.width / pageCanvas.width };
 }
+
+const TEXT_OCR_OPTIONS = { minimumConfidence: 0.1 };
+const TEXT_HEIGHTS = [480, 640];                     // the free-text areas are read at two large sizes, besides the whole-page reading
+const textOf = (result) => (result.lines || []).flat().filter((t) => t && t.box).sort((a, b) => Math.round(a.box.y / 14) - Math.round(b.box.y / 14) || a.box.x - b.box.x).map((t) => String(t.text).trim()).filter(Boolean).join(' ');
 
 /**
  * readRecordFields(session, { engine, photo }) ->
@@ -149,7 +163,7 @@ export async function readRecordFields(session, { engine, photo, onProgress = ()
     const pageText = session.tokens.filter((t) => inside(poly, t.x + t.w / 2, t.y + t.h / 2)).sort((a, b) => a.x - b.x).map((t) => t.text.trim()).join(' ');
     rects[key] = toSource(bounds(poly));
     cells[key] = await readCell({
-      column: key, range: field.range, repairDecimal: field.decimals === 1, integer: field.decimals === 0, month: null,
+      column: key, range: field.range, repairDecimal: field.decimals === 1, integer: field.decimals === 0, parse: field.kind ? FIELD_PARSERS[field.kind] : null, month: null,
       rect: toSource(readRect(poly)),
       pageText: pageText === '' ? null : pageText,
       makeCrop: (rect, height) => photo.crop(session.img, rect, height),
@@ -168,7 +182,21 @@ export async function readRecordFields(session, { engine, photo, onProgress = ()
   const sex = readSex(ratios.sexL, ratios.sexP);
   const pictures = {};
   for (const [key, b] of Object.entries(MEDREC.freeText)) pictures[key] = toSource(bounds(placeBox(aligned.H, b)));
+  // the two free-text areas that carry the diagnosis and the prescription: three readings each, parsed and voted (see rxparse.js)
+  const texts = {};
+  for (const name of ['asessmen', 'planning']) {
+    onProgress(name === 'asessmen' ? 'Membaca diagnosis (Asessemen)…' : 'Membaca resep (Planning)…');
+    const poly = placeBox(aligned.H, MEDREC.freeText[name]);
+    const rect = toSource(bounds(poly));
+    const pageText = session.tokens.filter((t) => inside(poly, t.x + t.w / 2, t.y + t.h / 2)).sort((a, b) => Math.round(a.y / 14) - Math.round(b.y / 14) || a.x - b.x).map((t) => t.text.trim()).filter(Boolean).join(' ');
+    const readings = [pageText];
+    for (const h of TEXT_HEIGHTS) {
+      try { readings.push(textOf(await engine.recognize(await photo.crop(session.img, rect, h), TEXT_OCR_OPTIONS))); } catch (e) { readings.push(''); }
+    }
+    texts[name] = readings;
+  }
+  const rx = voteRx({ assess: texts.asessmen, plan: texts.planning });
   const union = (list) => { const x0 = Math.min(...list.map((r) => r.x)); const y0 = Math.min(...list.map((r) => r.y)); const x1 = Math.max(...list.map((r) => r.x + r.w)); const y1 = Math.max(...list.map((r) => r.y + r.h)); const m = 6 * session.factor; return { x: x0 - m, y: y0 - m, w: x1 - x0 + 2 * m, h: y1 - y0 + 2 * m }; };
   const strips = { dob: union([rects.dobD, rects.dobM, rects.dobY]), tgl: union([rects.tglD, rects.tglM, rects.tglY]), sex: union([tickRects.sexL, tickRects.sexP]), td: union([rects.sys, rects.dia]) };
-  return { cells, rects, sex, ticks: { ratios, rects: tickRects }, pictures, strips, flags: [] };
+  return { cells, rects, sex, ticks: { ratios, rects: tickRects }, pictures, strips, rx, texts, flags: [] };
 }

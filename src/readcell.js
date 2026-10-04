@@ -55,10 +55,12 @@ export function tokensToText(result) {
  */
 export function voteReadings(readings, spec) {
   // spec: a growth-page column name ('L-weight'), or { range: [lo, hi] } for any other numeric field
-  const [lo, hi] = typeof spec === 'string' ? TEMPLATE.kinds[kindOfColumn(spec)].range : spec.range;
+  const parse = typeof spec !== 'string' ? spec.parse : null;                // boxes that are not plain numbers (MRN, fractions)
+  const [lo, hi] = parse ? [-Infinity, Infinity] : typeof spec === 'string' ? TEMPLATE.kinds[kindOfColumn(spec)].range : spec.range;
   const repairDecimal = typeof spec !== 'string' && spec.repairDecimal === true;
   const integerOnly = typeof spec !== 'string' && spec.integer === true;      // dates: a decimal point means a misreading
   const analysed = readings.map((r) => {
+    if (parse) { const p = parse(r.text); return { ...r, value: p.value, substituted: !!p.substituted, hadSpace: false, note: p.note }; }
     const a = analyseNumber(r.text, { loose: true });
     let value = a.value; let note = null; let repaired = false;
     if (value !== null && integerOnly && !Number.isInteger(value)) { note = `${r.text} is not a whole number`; value = null; }
@@ -74,7 +76,7 @@ export function voteReadings(readings, spec) {
   const groups = [];
   for (const a of analysed) {
     if (a.value === null) continue;
-    const g = groups.find((x) => Math.abs(x.value - a.value) < 0.001);
+    const g = groups.find((x) => (typeof a.value === 'number' ? Math.abs(x.value - a.value) < 0.001 : x.value === a.value));
     if (g) g.members.push(a); else groups.push({ value: a.value, members: [a] });
   }
   groups.sort((x, y) => y.members.length - x.members.length);
@@ -103,7 +105,7 @@ export function voteReadings(readings, spec) {
  *  measureInk(picture)    -> share of dark pixels
  *  pageText               -> what the whole-page reading said for this cell (one more vote), or null
  */
-export async function readCell({ column, range = null, repairDecimal = false, integer = false, month, rect, makeCrop, recognize, measureInk, pageText = null, heights = CROP_HEIGHTS }) {
+export async function readCell({ column, range = null, repairDecimal = false, integer = false, parse = null, month, rect, makeCrop, recognize, measureInk, pageText = null, heights = CROP_HEIGHTS }) {
   const readings = [];
   if (pageText !== null && pageText !== undefined) readings.push({ source: 'page', text: String(pageText) });
   let ink = null;
@@ -116,7 +118,7 @@ export async function readCell({ column, range = null, repairDecimal = false, in
     } catch (error) { text = ''; }
     readings.push({ source: `crop${h}`, text });
   }
-  const vote = voteReadings(readings, range ? { range, repairDecimal, integer } : column);
+  const vote = voteReadings(readings, parse ? { parse } : range ? { range, repairDecimal, integer } : column);
   const hasInk = ink === null ? null : ink >= INK_MIN;
   let { status } = vote; const why = [...vote.why];
   const anyText = readings.some((r) => r.text.trim() !== '');

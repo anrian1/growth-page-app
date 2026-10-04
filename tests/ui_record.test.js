@@ -5,12 +5,12 @@ import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { assess } from '../src/core/zscore.js';
 import { allRecords } from '../src/storage.js';
 import { script, sheets } from './fakes.mjs';
-import { $, tick, waitFor, readBlob, realPack, overlayOpen, takePhoto, setVal, boot, manual } from './uihelpers.js';
+import { $, tick, waitFor, readBlob, realPack, overlayOpen, takePhoto, setVal, boot, manual, confirmAll } from './uihelpers.js';
 
 vi.mock('../src/photo.js', async () => ({ ...(await import('./fakes.mjs')).photo }));
 vi.mock('../src/ocr-engine.js', async () => ({ ...(await import('./fakes.mjs')).engine }));
 const downloaded = [];
-const truthOf = (name) => Object.fromEntries(Object.entries(sheets.find((s) => s.name === name).fields).map(([k, f]) => [k, Number(f.truth)]));
+const truthOf = (name) => Object.fromEntries(Object.entries(sheets.find((s) => s.name === name).fields).map(([k, f]) => [k, k === 'mrn' || k.startsWith('rx') ? f.truth : Number(f.truth)]));
 const goodCrops = (name) => ({ key, truth }) => String(truth); // every crop reads the true value
 
 beforeAll(async () => { await boot({ fetchStub: async (url) => (String(url).includes('malaria-dose') ? { ok: true, json: async () => realPack() } : { ok: false }), downloaded }); });
@@ -35,11 +35,17 @@ describe('medical record: photo -> popup -> result -> save', () => {
     expect(document.querySelector('input[name=rc-sex]:checked').value).toBe('L');                    // from the tick box
     expect($('f-dobY').value).toBe(String(t.dobY)); expect($('f-tglM').value).toBe(String(t.tglM));
     expect($('rc-age').textContent).toContain('7 bulan');
-    expect($('overlay').textContent).toContain('Teks bebas (hanya gambar, tidak dibaca AI)');
+    expect($('f-mrn').value).toBe(t.mrn);                                                       // the record number was read
+    expect($('f-rxDhpTabs').value).toBe('1/2'); expect($('f-rxDhpDays').value).toBe('3'); expect($('f-rxPqTabs').value).toBe('1/4');
+    expect($('rx-species').value).toBe('falciparum');
+    expect($('overlay').textContent).toContain('Diagnosis dan resep'); expect($('overlay').textContent).toContain('Nama pasien tidak dibaca');
   });
 
   it('confirm -> nutrition for 0-59 months with the right index names -> save', async () => {
-    if ($('c-check')) $('c-check').checked = true;
+    $('c-check') && ($('c-check').checked = true);
+    $('c-ok').click(); await tick(20);
+    expect($('confirm-error').textContent).toContain('Sesuai tulisan');                            // the prescription must be compared with the handwriting first
+    confirmAll();
     $('c-ok').click(); await tick(40);
     expect($('overlay').hidden).toBe(true);
     expect($('result').hidden).toBe(false);
@@ -47,13 +53,15 @@ describe('medical record: photo -> popup -> result -> save', () => {
     const expected = assess({ sex: 'L', ageMonths: 7, weightKg: t.weight, lengthCm: t.height });
     const text = $('result').textContent;
     expect(text).toContain('Laki-laki, 7 bulan'); expect(text).toContain('WHO 2006, 0\u201359 bulan'); expect(text).toContain('PB/U'); expect(text).toContain('BB/PB');
-    expect(text).toContain(expected.category.bbu); expect(text).toContain('bukan diagnosis');
+    expect(text).toContain(expected.category.bbu); expect(text).toContain('bukan diagnosis'); expect(text).toContain('No. RM 00-1284-86');
+    expect($('ma-out').textContent).toContain('Sesuai dengan tabel pedoman');                       // the dose check ran by itself on the confirmed prescription
+    expect($('ma-details').textContent).toContain('sudah Anda konfirmasi');
     if ($('checked')) $('checked').checked = true;
     $('save').click(); await tick(80);
     const [rec] = await allRecords();
     expect(rec.type).toBe('record'); expect(rec.sex).toBe('L'); expect(rec.ageMonths).toBe(7); expect(rec.values.weight).toBe(t.weight);
     expect(rec.nutrition.category.bbu).toBe(expected.category.bbu);
-    expect(rec.sources.sex).toBe('photo_ok'); expect(rec.sources.weight).toMatch(/^photo_/);
+    expect(rec.sources.sex).toBe('photo_ok'); expect(rec.sources.weight).toMatch(/^photo_/); expect(rec.mrn).toBe(t.mrn); expect(rec.rxSource).toBe('photo_confirmed'); expect(rec.malaria.status).toBe('match');
     expect($('records-summary').textContent).toContain('1 data tersimpan');
   });
 
@@ -63,7 +71,7 @@ describe('medical record: photo -> popup -> result -> save', () => {
     expect(await waitFor(overlayOpen)).toBe(true);
     expect(document.querySelector('input[name=rc-sex]:checked')).toBeNull();
     expect($('overlay').textContent).toContain('kedua kotak LK dan PR');
-    $('c-check') && ($('c-check').checked = true);
+    confirmAll();
     $('c-ok').click(); await tick(20);
     expect($('confirm-error').textContent).toContain('Pilih jenis kelamin');
     document.querySelector('input[name=rc-sex][value=P]').checked = true;
@@ -81,7 +89,7 @@ describe('medical record: photo -> popup -> result -> save', () => {
     await takePhoto();
     expect(await waitFor(overlayOpen)).toBe(true);
     expect($('rc-age-flags').textContent).toContain('lebih awal dari tanggal lahir');
-    $('c-check') && ($('c-check').checked = true);
+    confirmAll();
     $('c-ok').click(); await tick(20);
     expect($('confirm-error').textContent).toContain('lebih awal dari tanggal lahir');
     expect($('result').hidden).toBe(true);
@@ -103,6 +111,46 @@ describe('medical record: photo -> popup -> result -> save', () => {
     expect($('rc-age').textContent).toContain('Umur');
     $('c-retake').click();
     script.say = null;
+  });
+
+  it('a record number that is not read is never guessed: raw readings are shown as a hint and a person types it', async () => {
+    script.sheet = 'C09'; script.say = ({ key, truth }) => (key === 'mrn' ? '' : String(truth));
+    await takePhoto();
+    expect(await waitFor(overlayOpen)).toBe(true);
+    expect($('f-mrn').value).toBe('');
+    expect($('overlay').textContent).toContain('ketik 8 angka dari gambar');
+    confirmAll(); document.querySelector('input[name=rc-sex][value=L]').checked = true;
+    $('c-ok').click(); await tick(20);
+    expect($('confirm-error').textContent).toContain('Nomor rekam medis harus 8 angka');
+    setVal('f-mrn', '00-1760-00');                                                               // typed with the printed grouping: accepted
+    $('c-ok').click(); await tick(40);
+    expect($('result').hidden).toBe(false);
+    expect($('result').textContent).toContain('No. RM 00-1760-00');
+    $('checked') && ($('checked').checked = true);
+    $('save').click(); await tick(80);
+    const rec = (await allRecords()).find((r) => r.mrn === '00176000');
+    expect(rec.sources.mrn).toBe('photo_edited'); script.say = null;
+  });
+
+  it('the same record number with the same visit date a second time is flagged as a possible duplicate and needs a tick', async () => {
+    script.sheet = 'C03'; script.say = goodCrops('C03');
+    await takePhoto();
+    expect(await waitFor(overlayOpen)).toBe(true);
+    confirmAll(); $('c-ok').click(); await tick(60);
+    $('save').click(); await tick(60);                                                           // the first copy is saved...
+    await takePhoto();
+    expect(await waitFor(overlayOpen)).toBe(true);
+    confirmAll(); $('c-ok').click(); await tick(60);
+    expect($('result').textContent).toContain('data ganda');
+    expect($('checked')).not.toBeNull();
+    $('save').click(); await tick(40);
+    expect($('photo-error').textContent).toContain('sudah memeriksa');
+  });
+
+  it('the same record number with a DIFFERENT date of birth is flagged (a misread number points at someone else)', async () => {
+    manual({ mrn: '00128486', dob: [9, 1, 2026], visit: [5, 10, 2026] }); await tick(60);
+    expect($('result').textContent).toContain('tanggal lahir yang berbeda');
+    expect($('checked')).not.toBeNull();
   });
 
   it('a photo that is not the form is refused with a reason and the manual option', async () => {
@@ -161,15 +209,22 @@ describe('medical record: photo -> popup -> result -> save', () => {
     expect((await allRecords()).some((r) => r.flags.some((f) => f.includes('Sistolik harus lebih besar')))).toBe(true);
   });
 
-  it('exports a record CSV that says how each value was obtained, without the date of birth by default', async () => {
+  it('exports the link file (MRN + date of birth) and the analysis file (neither), each with how every value was obtained', async () => {
     downloaded.length = 0;
-    $('export-new').click(); await tick(100);
+    $('export-link').click(); await tick(100);
     expect(downloaded.length).toBe(1);
     const text = await readBlob(downloaded[0]);
     const header = text.split('\r\n')[0];
-    expect(header).toContain('sex_source,dob_source,visit_date_source'); expect(header).toContain('malaria_status'); expect(header).not.toContain(',dob,');
-    expect(text).toContain('photo_ok'); expect(text).toContain('typed'); expect(text).toContain('photo_chosen');
+    expect(header).toContain('sex_source,dob_source,visit_date_source,mrn_source'); expect(header).toContain('malaria_status'); expect(header).toContain('mrn,dob,visit_date');
+    expect(text).toContain('photo_ok'); expect(text).toContain('typed'); expect(text).toContain('photo_chosen'); expect(text).toContain('00-1284-86');
     expect($('records-summary').textContent).toContain('0 belum diekspor');
+  });
+
+  it('the analysis file has no MRN and no date of birth', async () => {
+    downloaded.length = 0;
+    $('export-analysis').click(); await tick(100);
+    const text = await readBlob(downloaded[0]);
+    expect(text.split('\r\n')[0]).toContain('visit_month'); expect(text).not.toContain('00-1284-86'); expect(text).not.toContain('00128486'); expect(text).not.toMatch(/\b20\d\d-\d\d-\d\d\b/);
   });
 
   it('deletes everything on the phone after confirmation', async () => {

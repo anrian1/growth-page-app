@@ -26,10 +26,14 @@ export async function boot({ fetchStub, downloaded = [] }) {
   await import('../src/main.js');
   await tick(60);
 }
-export function manual({ sex = 'L', dob = [1, 1, 2026], visit = [4, 10, 2026], vitals = {} } = {}) {
+let mrnCounter = 0;
+export function manual({ sex = 'L', dob = [1, 1, 2026], visit = [4, 10, 2026], vitals = {}, mrn = null } = {}) {
+  mrnCounter += 1; $('man-mrn').value = mrn ?? String(20000000 + mrnCounter);
   document.querySelectorAll('input[name=man-sex]').forEach((r) => { r.checked = r.value === sex; });
   ['D', 'M', 'Y'].forEach((c, i) => { $(`man-dob${c}`).value = dob[i] ?? ''; $(`man-tgl${c}`).value = visit[i] ?? ''; });
   const v = { sys: '90', dia: '55', hr: '120', rr: '30', temp: '38,5', height: '70', weight: '8', ...vitals };
   for (const [k, val] of Object.entries(v)) $(`man-${k}`).value = val;
   $('manual-go').click();
 }
+
+export const confirmAll = () => { for (const id of ['c-check', 'c-rx-check']) if ($(id)) $(id).checked = true; };

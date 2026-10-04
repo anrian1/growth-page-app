@@ -13,65 +13,74 @@ Built for the World Bank / Hack-Nation Small AI for Development hackathon 2026 (
 
 ## The flow
 1. **Photo of the page** (camera or gallery; a photo of a tablet screen works too). The whole page must be visible.
-2. The app finds the printed words (30 of them) to work out how the page is tilted, then cuts out the boxes: sex tick boxes (LK / PR), date of birth, the TGL date, and six vitals boxes (TD, HR, RR, T, TB, BB).
+2. The app finds the printed words (30 of them) to work out how the page is tilted, then cuts out the boxes: record number (MRN), sex tick boxes (LK / PR), date of birth, the TGL date, six vitals boxes (TD, HR, RR, T, TB, BB) and four prescription boxes (DHP and primaquine, tablets per day and days).
 3. Each numeric box is read **four times** (the whole-page reading plus three crops at different sizes) and the readings are voted. Four agree: shown as reliable. A tie or a lone reading: no value is offered, the candidates are shown and a person chooses.
-4. **Popup:** every box next to a picture of the handwriting. Date of birth and TGL give the age live. The sex comes from the tick boxes and is never guessed when both or neither are ticked.
-5. **Result:** nutritional status (0–59 months), flags, and the malaria dose card. Children of 5–18 years get the dose card but not nutrition (stage 2, below).
-6. **Save and export.** Records stay in IndexedDB on the phone.
-Free-text areas (complaint, diagnosis, plan) are shown as pictures only. **The AI does not read them.**
+4. The free text of **Asessemen** and **Planning** is read three times each; the malaria type (falsiparum, tropika, tersiana, vivaks, mix, ...), the RDT result, the word "dispersibel" and the artesunate mg are picked out from a fixed word list (a letter or two wrong is tolerated) and voted. Unclear means blank, never guessed.
+5. **Popup:** every box next to a picture of the handwriting. Date of birth and TGL give the age live. The sex comes from the tick boxes and is never guessed when both or neither are ticked. The prescription is shown beside the pictures and needs one tap, "Sesuai tulisan", before anything is saved.
+6. **Result:** nutritional status (0-59 months), flags, and the malaria dose check, which **runs by itself** on the confirmed prescription. Children of 5-18 years get the dose check but not nutrition (stage 2, below).
+7. **Save and export** (two files, below). Records stay in IndexedDB on the phone.
 
-## The medical record form (`public/forms/rekam-medis-contoh.pdf`, SYNTHETIC)
-Based on the layout of a paper SOAP record (TGL, SUBJEKTIF, OBJEKTIF, ASESSEMEN, PLANNING, TT). Changes made for reading: Agama and Pekerjaan removed; LK/PR as tick boxes;
-date of birth boxes; a wider TGL column with date boxes (tgl, bln, tahun); six labelled boxes in the Objektif column. The template (`src/templates/medical-record.js`) is generated from the
-same description that draws the PDF (`scripts/make_form.py`), so the picture and the template cannot disagree. A different real form needs its own template.
+## Privacy by design
+- **Name, family-head name, address, phone and BPJS number stay on paper.** The page reader sees the whole page for a moment on the phone, so right after the page is aligned **every piece of text inside those areas is thrown away**. A test plants fake names there and fails if they show up on any screen, in any saved record or in either export file (`tests/ui_privacy.test.js`).
+- **Two export files with fixed column lists** (`src/csv.js`; a test fails if a column is added without changing the expected list, and if any column looks like a name, address, phone, BPJS, ID or raw-text column):
+  - **Link file:** MRN (as 00-1234-56 so a spreadsheet keeps the leading zeros) + date of birth + exact visit date. For the clinic's own system. Personal health data: keep it inside the clinic.
+  - **Analysis file:** no MRN, no date of birth, visit month instead of the exact date, age in months. This is the one to share with evaluators.
+- **MRN + date of birth is the ID key.** Saving the same MRN with a different date of birth warns ("check the MRN or the date of birth": a misread digit points at someone else); the same MRN and visit date twice warns about a duplicate. Both need the "I checked" tick.
+- **Honest limits:** MRN + date + sex is pseudonymous, not anonymous. The photo itself stays in the phone's gallery unless deleted (an in-app camera, or a fold-over flap over the name block, would fix that). UU PDP 27/2022 treats health data as specific personal data: have legal confirm what applies.
+
+## The medical record form v3 (`public/forms/rekam-medis-contoh.pdf`, SYNTHETIC)
+Based on the layout of a paper SOAP record (TGL, SUBJEKTIF, OBJEKTIF, ASSESMENT, PLANNING, TT). Changes made for reading: Agama and Pekerjaan removed; LK/PR as tick boxes; date of birth boxes; a wider TGL column with date boxes; six labelled boxes in the Objektif column; **one wide box for the record number; four boxes in the Planning column for the prescription amounts.**
+Why v3: the first version had eight tiny digit boxes for the MRN and free text for the prescription. On synthetic photos the digits were right and reliable only 45% of the time, and free-text amounts only 5 of 18. Boxes read much better. The template (`src/templates/medical-record.js`) is generated from the same description that draws the PDF (`scripts/make_form.py`), so the picture and the template cannot disagree. A different real form needs its own template.
 
 ## Age and dates (`src/recorddate.js`)
-Age is the visit date (TGL) minus the date of birth, in completed months. The app refuses impossible dates (30 February), a visit before the birth, a visit date later than today on the phone,
-and ages over 18 years, each with a reason. 0–59 months get nutrition; 5–18 years get the dose card only.
+Age is the visit date (TGL) minus the date of birth, in completed months. The app refuses impossible dates (30 February), a visit before the birth, a visit date later than today on the phone, and ages over 18 years, each with a reason. 0-59 months get nutrition; 5-18 years get the dose check only.
 
 ## Nutritional status (`src/core/zscore.js`)
 WHO 2006 LMS tables. Under 24 months: length (lying) tables, weight-for-length. From 24 months: height (standing) tables, weight-for-height. Index names switch (PB/U to TB/U, BB/PB to BB/TB).
-The category is taken from the score rounded to 2 decimals, the number shown on screen. **Stage 2 (5–18 years)** needs the WHO 2007 reference tables (height-for-age and BMI-for-age 5–19 years, weight-for-age 5–10 years) and the Permenkes 2/2020 category labels for that age; not installed.
+The category is taken from the score rounded to 2 decimals, the number shown on screen. **Stage 2 (5-18 years)** needs the WHO 2007 reference tables (height-for-age and BMI-for-age 5-19 years, weight-for-age 5-10 years) and the Permenkes 2/2020 category labels for that age; not installed.
 
 ## Malaria dose check (`src/malaria.js`, `public/guidelines/malaria-dose.json`)
-Under the result, an optional card compares the antimalarial dose that was written with the guideline table for the child's weight (Buku Saku Tata Laksana Kasus Malaria).
-- **Input:** test result, treatment type, plasmodium species, DHP formulation (tablet or dispersible), DHP tablets per day and days, primaquine tablets per day and days, or the artesunate dose in mg for severe malaria; for girls from 10 years, pregnancy and breastfeeding; for anyone, known G6PD deficiency. Amounts are picked from a list. No handwriting is read.
+The dose that was written is compared with the guideline table for the child's weight (Buku Saku Tata Laksana Kasus Malaria). It runs on the confirmed prescription; every field can still be changed.
 - **Output:** "matches the table", "differs from the table", "cannot check, ask a doctor", or "nothing to compare", then findings. Each finding shows the table row or sentence it rests on, with page, section and exact quote.
-- **Compares:** DHP amount and days by weight band; primaquine amount, days by species, none for P. malariae and P. knowlesi, none under 6 months, none in pregnancy, none while breastfeeding an infant under 6 months, none with G6PD deficiency; artesunate mg/kg (3 under 20 kg, 2.4 above); a negative test with an ACT recorded; dispersible tablets below 5 kg and 6 months.
+- **Compares:** DHP amount and days by weight band; primaquine amount, days by species, none for P. malariae and P. knowlesi, none under 6 months, none in pregnancy, none while breastfeeding an infant under 6 months, none with G6PD deficiency; artesunate mg/kg (3 under 20 kg, 2.4 above); a negative test with an ACT recorded; dispersible tablets below 5 kg and 6 months; DHP written more than once a day.
 - **Fail-safes:** an uncertain weight stops the check; a weight outside the table is "cannot check"; exactly 20 kg is "not sure" because the guideline does not say; matching days alone is never reported as a verified dose; a missing primaquine is a note (it can be deliberate); a pack without a citation for every table and statement is refused whole.
 - **Nutrition link:** BB/TB "Obesitas" adds the guideline's note to dose by ideal body weight (Catatan c).
 - **Not covered:** artemether-lumefantrine, artesunate-pyronaridine, quinine, relapse dosing, the special G6PD dose (quoted, not calculated), dosing in pregnancy, diagnosis and follow-up, malnutrition, tablet strength in mg (not in the source file).
-- **Authoring:** `npm run build-malaria-pack` builds the pack from `docs/source/Malaria_clean.md`: tables are parsed from the markdown, quoted sentences are copied exactly, and the script stops if a quote cannot be found.
-  The pack is a **DRAFT** (`reviewedBy: null`) until a clinician has checked every line of `docs/malaria-dose-verification.csv` against the PDF. Page numbers are inferred from the page markers in the .md and need a spot check; the publication year (2023) is a guess.
+- **Authoring:** `npm run build-malaria-pack` builds the pack from `docs/source/Malaria_clean.md`. The pack is a **DRAFT** (`reviewedBy: null`) until a clinician has checked every line of `docs/malaria-dose-verification.csv` against the PDF. Page numbers are inferred from the page markers in the .md; the publication year (2023) is a guess.
+
+## Reading the prescription (`src/rxparse.js`, `src/fieldparse.js`)
+Shorthand understood: tablets per day = times a day x amount, so 1x1, 1x2, 1x3, 1x4, 1x5, 1x1/2, 1 dd 1, "1/2 tab 1x1", "2 tablet sehari selama 3 hari", "14 hari", fractions as 1/2, 1/4, 1 1/2, 1,5 or the glyphs. DHP written 3x1 (three times a day) still counts as 3 tablets per day but adds a warning, because DHP is once daily. An amount with no frequency, an amount that is not on the tablet list, two different numbers, or a type word with a typo that could be another word ("malaria" must never become "malariae") all stay blank. The matched handwriting text is shown on screen only and is never saved; only the parsed fields are.
 
 ## Evidence so far (all SYNTHETIC; `npm run evidence`)
-21 invented children (`docs/case-sheet.json`; `npm run case-sheet`), written in handwriting-style fonts by three simulated writers on the form, then degraded like a photo of a tablet screen (tilt, perspective, glare, moiré-like banding, blur, noise, JPEG) at three difficulty levels. A real OCR engine (RapidOCR in Python; **not** the browser model) read them.
-- **Alignment:** 21 of 21 sheets aligned (at least 29 of 30 labels used); box centres within 1.5% of a box width on average, 4.5% at worst; the true centre of all 273 boxes inside the rectangle that is cut out.
-- **Reading, 273 boxes:** 245 right and shown as reliable, 18 right but flagged for a person to check, 9 no value (a person types it), **1 wrong and not flagged** (a lone "1" read as "7" by all three crops). Page reading alone: 214 right, 58 no value, 1 wrong.
-- **Weakest boxes:** the small date boxes (day and month, single digits). Expect corrections there.
-- **Sex tick boxes:** 21 of 21.
-- **What this does not show:** real handwriting, real photos, the browser model, or real clinics. It shows the logic works and where it is weak. The real test is the pages written on a tablet and photographed with the phone (`docs/case-sheet-answer-key.csv` is the key).
+21 invented children (`docs/case-sheet.json`), written in handwriting-style fonts by three simulated writers on form v3, then degraded like a photo of a tablet screen (tilt, perspective, glare, moire-like banding, blur, noise, JPEG) at three difficulty levels. A real OCR engine (RapidOCR in Python; **not** the browser model) read them.
+- **Alignment:** 21 of 21 sheets (at least 28 of 30 labels used); box centres within 1% of a box width on average, 3.2% at worst; the true centre of all 378 boxes inside the rectangle that is cut out.
+- **Reading, 378 boxes, voted:** 312 right and shown as reliable, 18 right but flagged, 44 no value (a person types it), **3 wrong and not flagged** (a lone "1" read as "7" three times by the crops: a weight of 18.1 read as 78.1, a visit day, and a primaquine day). The weight error is caught later because 78 kg at 50 months fails the plausibility check and forces the "I checked" tick.
+- **By group:** vitals 138 of 147 right and reliable; dates 105 of 126; prescription amounts 69 of 84; sex ticks 21 of 21.
+- **Record number: 0 of 21 read as a reliable 8-digit number.** The OCR garbles the leading "00" (readings like "1A0-1126-48"). So the MRN is typed by a person with the picture and the raw readings beside it. This is the weakest and most important field; the date-of-birth cross-check is what catches a wrong one later. A barcode or QR sticker with the MRN would read far better and is the recommended next step.
+- **Prescription, end to end (amounts from boxes, type and test from text):** every field right on 4 of 21 pages. The dose check run on the pre-filled values gave the **same result as with perfect reading on 13 of 21 pages**, a different but not reassuring result on 8 (a blank field, so "cannot check" or "nothing to compare"), **0 false reassurances and 0 false alarms**. Malaria type: 12 of 18 right, 6 left blank, 0 wrong.
+- **What this does not show:** real handwriting, real photos, the browser model, or real clinics. It shows the logic works, fails safe, and where it is weak. The real test is the pages written on a tablet and photographed with the phone (`docs/case-sheet-answer-key.csv` is the key).
 
 ## Dose and nutrition logic tests
-- Calculator: 52 hand-built cases, 356 cross-checks for 24–59 months against an independent reference library (all 14 category labels covered but one), 33 category boundaries, age switch at 24 months, table limits.
+- Calculator: 52 hand-built cases, 356 cross-checks for 24-59 months against an independent reference library, 33 category boundaries, the age switch at 24 months, table limits.
 - Dose check: 71 tests; tables checked against amounts typed by hand from the source, every weight-band boundary, a sweep of every band x species x formulation (prescribing exactly the table is never flagged), wrong doses, infants, pregnancy, G6PD, severe malaria, the refusal rules.
-- Screen tests: the real page in a simulated browser with a fake camera and a fake OCR engine built on real OCR output (26 scenarios).
-- Breaking one table amount, the band-boundary rule, the infant primaquine rule, the visit-before-birth check, the tick threshold, the 24-month switch or the sex boxes makes tests fail.
+- Prescription reader: 85 tests (shorthand, spelling damage, line breaks, severe malaria, voting). Exports: 11. Record reader: 33. Screen tests: 31 scenarios in a simulated browser with a fake camera and a fake OCR engine built on real OCR output.
+- Breaking the table amounts, the band-boundary rule, the infant primaquine rule, the visit-before-birth check, the tick threshold, the 24-month switch, the sex boxes, the privacy filter, the analysis file columns, the "matches" rule or the fraction parser makes tests fail.
 
 ## Known limits
-- **Not tested on a real phone** with the real browser OCR model and real handwriting. Do this before claiming any accuracy: `/ocr-spike.html`, then ten pages of your own (see below).
+- **Not tested on a real phone** with the real browser OCR model and real handwriting. Do this before claiming any accuracy: `/ocr-spike.html`, then pages of your own (below).
 - Reading depends on the box layout of this form; a real form needs a template and its own check.
-- The dose check compares what a person typed or picked. It cannot see a handwritten prescription.
+- The record number is typed by a person (see above). The prescription needs one tap of confirmation by design: a misread dose that happens to match the table would otherwise say "matches" falsely, and people accept about 1 in 5 wrong AI suggestions.
 - A dose that matches the table is not proof that the dose is right for that child.
-- The malaria tables are a DRAFT until reviewed; the nutrition tables for 5–18 years are not installed.
+- The malaria tables are a DRAFT until reviewed; the nutrition tables for 5-18 years are not installed.
 - Plausible ranges for the vitals boxes (`src/templates/medical-record.js`) are placeholders for a clinician to confirm.
 - iPhone Safari may clear stored data after about a week without use: export often.
 - Size of the reading model: measure it from the build and put the number in the data card.
+- The interface is in Bahasa Indonesia only for now; an EN/ID switch is planned.
 
 ## Test with your own pages (the evidence that matters)
-1. Print or open `public/forms/rekam-medis-contoh.pdf`; copy children from `docs/case-sheet-answer-key.csv` (or invent your own) into the form, one per page, different writers if possible.
+1. Open `public/forms/rekam-medis-contoh.pdf` (form v3) on a tablet; copy children from the case sheet PDF (or invent your own, including an invented record number) into the form, one per page, different writers if possible. Never use real patient data.
 2. Photograph each page with the phone (a tablet screen is fine: medium brightness, avoid glare).
-3. For each page note: seconds from photo to popup, how many boxes had to be corrected, and whether a wrong value went through unflagged.
+3. For each page note: seconds from photo to popup, how many boxes had to be corrected (count the typed MRN as one), whether the dose card was filled right without changes, and whether a wrong value went through unflagged.
 4. Compare with the time to type the same values. That comparison is what shows whether the AI step is worth having.
 
 ## Run on your computer
@@ -109,7 +118,9 @@ If the site ever fails to load anything from another address, delete `vercel.jso
 ```
 src/core/zscore.js            WHO LMS calculator, 0-59 months
 src/core/who_lms.js           WHO tables (generated once)
-src/templates/medical-record.js  the blank form as data (generated from scripts/make_form.py)
+src/templates/medical-record.js  the blank form v3 as data (generated from scripts/make_form.py)
+src/rxparse.js                prescription and diagnosis words -> fields (fixed word list, voting, never guesses)
+src/fieldparse.js             parsers for the MRN and the fraction boxes
 src/clinic.js                 page alignment (printed words -> camera transform) and box rectangles
 src/readcell.js               per-box voting, ink detection, tick boxes
 src/session.js                readRecordPage / readRecordFields

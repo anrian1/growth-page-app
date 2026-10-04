@@ -1,6 +1,6 @@
 {
- "id": "rekam-medis-contoh-v2",
- "title": "REKAM MEDIS (contoh sintetis, revisi)",
+ "id": "rekam-medis-contoh-v3",
+ "title": "REKAM MEDIS (contoh sintetis, revisi 3)",
  "synthetic": true,
  "page": {
   "w": 595.28,
@@ -141,10 +141,10 @@
    "h": 9.03
   },
   {
-   "text": "ASESSEMEN",
-   "x": 359.94,
+   "text": "ASSESMENT",
+   "x": 360.21,
    "y": 319.59,
-   "w": 59.65,
+   "w": 59.12,
    "h": 9.03
   },
   {
@@ -216,6 +216,43 @@
    "y": 814.54,
    "w": 290.63,
    "h": 6.65
+  }
+ ],
+ "pii": [
+  {
+   "name": "nama",
+   "x": 114,
+   "y": 95,
+   "w": 222,
+   "h": 20
+  },
+  {
+   "name": "nama_kk",
+   "x": 114,
+   "y": 117,
+   "w": 222,
+   "h": 20
+  },
+  {
+   "name": "alamat",
+   "x": 114,
+   "y": 201,
+   "w": 222,
+   "h": 20
+  },
+  {
+   "name": "telp",
+   "x": 114,
+   "y": 220,
+   "w": 222,
+   "h": 20
+  },
+  {
+   "name": "bpjs_number",
+   "x": 345,
+   "y": 198,
+   "w": 222,
+   "h": 20
   }
  ],
  "fields": {
@@ -321,6 +358,84 @@
     "x": 232.43,
     "y": 574,
     "w": 70,
+    "h": 28
+   }
+  },
+  "mrn": {
+   "label": "Nomor rekam medis",
+   "unit": "",
+   "range": [
+    0,
+    0
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 345,
+    "y": 68,
+    "w": 190,
+    "h": 24
+   },
+   "kind": "mrn"
+  },
+  "rxDhpTabs": {
+   "label": "DHP, tablet per hari",
+   "unit": "tablet",
+   "range": [
+    0.25,
+    5
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 483.7,
+    "y": 374,
+    "w": 50,
+    "h": 28
+   },
+   "kind": "tablets"
+  },
+  "rxDhpDays": {
+   "label": "DHP, lama",
+   "unit": "hari",
+   "range": [
+    1,
+    30
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 483.7,
+    "y": 414,
+    "w": 50,
+    "h": 28
+   }
+  },
+  "rxPqTabs": {
+   "label": "Primakuin, tablet per hari",
+   "unit": "tablet",
+   "range": [
+    0.25,
+    5
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 483.7,
+    "y": 454,
+    "w": 50,
+    "h": 28
+   },
+   "kind": "tablets"
+  },
+  "rxPqDays": {
+   "label": "Primakuin, lama",
+   "unit": "hari",
+   "range": [
+    1,
+    30
+   ],
+   "decimals": 0,
+   "box": {
+    "x": 483.7,
+    "y": 494,
+    "w": 50,
     "h": 28
    }
   },
@@ -450,9 +565,9 @@
   },
   "planning": {
    "x": 436.7,
-   "y": 368,
+   "y": 546,
    "w": 98.88,
-   "h": 160
+   "h": 130
   }
  }
 }
