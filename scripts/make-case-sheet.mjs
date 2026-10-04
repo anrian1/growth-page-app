@@ -94,23 +94,38 @@ const cases = SPEC.map((c, i) => {
   const disp = (v) => (v === undefined || v === null || v === '' || v === '0' ? '' : v === '3/2' ? '1 1/2' : v);
   const rxBoxes = input.treatment === 'severe' ? { dhpTablets: '', dhpDays: '', pqTablets: '', pqDays: '' }
     : { dhpTablets: disp(input.dhpTablets), dhpDays: String(input.dhpDays ?? ''), pqTablets: disp(input.pqTablets), pqDays: input.pqDays ? String(input.pqDays) : '' };
+  const NUM = { '1/4': 0.25, '1/3': 1 / 3, '1/2': 0.5, '3/4': 0.75, '1': 1, '3/2': 1.5, '2': 2, '3': 3, '4': 4, '5': 5 };
+  const BACK = { 0.25: '1/4', 0.5: '1/2', 0.75: '3/4', 1: '1', 1.5: '1 1/2', 2: '2', 2.5: '2 1/2', 3: '3', 4: '4', 5: '5' };
+  const FREQ2 = new Set(['C06', 'C14']);                 // two cases are written "twice a day": the same tablets per day, but DHP is once daily (a warning is expected in v4)
+  let dhpFreq = 1; let dhpPerDose = disp(input.dhpTablets);
+  if (input.treatment !== 'severe' && FREQ2.has(c.id) && NUM[input.dhpTablets] && BACK[NUM[input.dhpTablets] / 2]) { dhpFreq = 2; dhpPerDose = BACK[NUM[input.dhpTablets] / 2]; }
+  const dhpName = input.formulation === 'dispersible' ? (i % 2 ? 'DHP dispersibel' : 'Dihidroartemisinin-piperakuin dispersibel') : ['DHP', 'Dihidroartemisinin-piperakuin', 'DHP'][i % 3];
+  const pqName = ['Primakuin', 'Primaquine', 'PQ'][i % 3];
+  let rxRows = [];
+  if (input.treatment !== 'severe') {
+    rxRows.push({ name: dhpName, amount: dhpPerDose, perDay: String(dhpFreq), days: String(input.dhpDays ?? '') });
+    if (input.pqTablets && input.pqTablets !== '0') rxRows.push({ name: pqName, amount: disp(input.pqTablets), perDay: '1', days: String(input.pqDays ?? '') });
+    if (i % 4 === 3 && rxRows.length === 2) rxRows.reverse();                                  // the order is the writer's choice
+  }
+  if (input.treatment !== 'severe' && temp >= 38.9) rxRows.push({ name: 'Paracetamol', amount: '1/2', perDay: '3', days: '3' });   // not an antimalarial: the app must ignore it
+  if (input.treatment !== 'severe' && i % 5 === 0) rxRows.push({ name: 'Amoksisilin', amount: '1/2', perDay: '3', days: '5' });
   const planningFree = input.treatment === 'severe' ? regimenText : (input.formulation === 'dispersible' ? 'DHP dispersibel' : '');
   const dose = checkRegimen(pack, input);
   const dx = (input.treatment === 'severe' ? 'Malaria berat' : DIAG[c.species]) + (c.test === 'negative' ? ' (RDT negatif)' : '');
   return {
-    id: c.id, mrn: mrnFor(i + 1), sex: c.sex, ageMonths: c.age, dob, visit: c.visit, complaint: COMPLAINTS[i % COMPLAINTS.length], vitals: v, diagnosisText: dx, planningText: planningFree, rxBoxes, regimenText, note: c.note,
+    id: c.id, mrn: mrnFor(i + 1), sex: c.sex, ageMonths: c.age, dob, visit: c.visit, complaint: COMPLAINTS[i % COMPLAINTS.length], vitals: v, diagnosisText: dx, planningText: planningFree, rxBoxes, rxRows, regimenText, dhpFreq, note: c.note,
     app: { species: c.species, testResult: c.test, treatment: input.treatment, formulation: input.formulation, dhpTablets: input.dhpTablets, dhpDays: input.dhpDays, pqTablets: input.pqTablets, pqDays: input.pqDays, artesunateMg: input.artesunateMg, g6pd: input.g6pd },
     expected: {
       nutritionAction: nutrition.action, bbu: nutrition.category.bbu, pbu: nutrition.category.pbu, bbpb: nutrition.category.bbpb, zBbu: nutrition.zRounded.bbu, zPbu: nutrition.zRounded.pbu, zBbpb: nutrition.zRounded.bbpb,
-      doseStatus: dose.status, doseChecks: dose.findings.filter((f) => f.level === 'check' || f.id === 'artesunate-boundary' || f.id === 'cannot-look-up').map((f) => f.id), doseNotes: dose.findings.filter((f) => f.level === 'info').map((f) => f.id),
+      doseStatus: dose.status, doseChecks: dose.findings.filter((f) => f.level === 'check' || f.id === 'artesunate-boundary' || f.id === 'cannot-look-up').map((f) => f.id), doseNotes: dose.findings.filter((f) => f.level === 'info').map((f) => f.id), v4Extra: dhpFreq > 1 ? ['dhp-frequency'] : [],
     },
   };
 });
 
 writeFileSync(join(root, 'docs/case-sheet.json'), JSON.stringify({ synthetic: true, note: 'All children are invented. Expected outputs are computed by the app code (pipeline fidelity, not clinical truth).', cases }, null, 1) + '\n');
 const q = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-const head = ['case', 'mrn', 'sex', 'dob_dd', 'dob_mm', 'dob_yyyy', 'tgl_dd', 'tgl_mm', 'tgl_yyyy', 'age_months', 'td_sys', 'td_dia', 'hr', 'rr', 't', 'tb_cm', 'bb_kg', 'species', 'blood_test', 'treatment', 'formulation', 'dhp_tabs_day', 'dhp_days', 'pq_tabs_day', 'pq_days', 'artesunate_mg', 'g6pd', 'exp_bbu', 'exp_pbu_tbu', 'exp_bbpb_bbtb', 'exp_nutrition_action', 'exp_dose_status', 'exp_dose_checks', 'scenario'];
-const rows = cases.map((c) => { const [dy, dm, dd] = c.dob.split('-'); const [vy, vm, vd] = c.visit.split('-'); return [c.id, `${c.mrn.slice(0, 2)}-${c.mrn.slice(2, 6)}-${c.mrn.slice(6)}`, c.sex, dd, dm, dy, vd, vm, vy, c.ageMonths, c.vitals.sys, c.vitals.dia, c.vitals.hr, c.vitals.rr, c.vitals.temp, c.vitals.height, c.vitals.weight, c.app.species, c.app.testResult, c.app.treatment, c.app.formulation, c.app.dhpTablets ?? '', c.app.dhpDays ?? '', c.app.pqTablets ?? '', c.app.pqDays ?? '', c.app.artesunateMg ?? '', c.app.g6pd, c.expected.bbu, c.expected.pbu, c.expected.bbpb, c.expected.nutritionAction, c.expected.doseStatus, c.expected.doseChecks.join(' | '), c.note]; });
+const head = ['case', 'mrn', 'sex', 'dob_dd', 'dob_mm', 'dob_yyyy', 'tgl_dd', 'tgl_mm', 'tgl_yyyy', 'age_months', 'td_sys', 'td_dia', 'hr', 'rr', 't', 'tb_cm', 'bb_kg', 'species', 'blood_test', 'treatment', 'formulation', 'dhp_tabs_day', 'dhp_days', 'pq_tabs_day', 'pq_days', 'artesunate_mg', 'g6pd', 'exp_bbu', 'exp_pbu_tbu', 'exp_bbpb_bbtb', 'exp_nutrition_action', 'exp_dose_status', 'exp_dose_checks', 'exp_v4_extra_checks', 'rx_rows_written', 'scenario'];
+const rows = cases.map((c) => { const [dy, dm, dd] = c.dob.split('-'); const [vy, vm, vd] = c.visit.split('-'); return [c.id, `${c.mrn.slice(0, 2)}-${c.mrn.slice(2, 6)}-${c.mrn.slice(6)}`, c.sex, dd, dm, dy, vd, vm, vy, c.ageMonths, c.vitals.sys, c.vitals.dia, c.vitals.hr, c.vitals.rr, c.vitals.temp, c.vitals.height, c.vitals.weight, c.app.species, c.app.testResult, c.app.treatment, c.app.formulation, c.app.dhpTablets ?? '', c.app.dhpDays ?? '', c.app.pqTablets ?? '', c.app.pqDays ?? '', c.app.artesunateMg ?? '', c.app.g6pd, c.expected.bbu, c.expected.pbu, c.expected.bbpb, c.expected.nutritionAction, c.expected.doseStatus, c.expected.doseChecks.join(' | '), c.expected.v4Extra.join(' | '), c.rxRows.map((r, n) => `${n + 1}) ${r.name} | ${r.amount} tab x ${r.perDay}/hari x ${r.days} hari`).join(' ; '), c.note]; });
 writeFileSync(join(root, 'docs/case-sheet-answer-key.csv'), '\uFEFF' + [head, ...rows].map((r) => r.map(q).join(',')).join('\r\n') + '\r\n');
 const catCount = {}; for (const c of cases) for (const k of ['bbu', 'pbu', 'bbpb']) catCount[c.expected[k]] = (catCount[c.expected[k]] || 0) + 1;
 console.log(cases.length, 'cases. Nutrition categories seen:', JSON.stringify(catCount));

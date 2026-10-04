@@ -1,0 +1,18 @@
+HONAI patch: form v4 (free-text drug name + tablets per dose, times per day, days; five rows)
+================================================================================================
+Unzip this patch INTO your project folder (the one with package.json), replacing files. No npm install needed (no new dependencies).
+
+1. git add . ; git commit -m "checkpoint before v4"      (if you have not already)
+2. unzip the patch over the project folder (replace)
+3. npm test      -> should end with "Tests 30 passed (30)"
+4. git add . ; git commit -m "Form v4: prescription rows" ; git push
+5. wait for Vercel to show Ready, then reload the app on the phone (close it fully and reopen so the new version is picked up)
+
+Print and write on: rekam-medis-v4-x10.pdf  (the form in public/forms/ is the same v4 page).
+
+What changed: the form template (src/templates/medical-record.js), reading and popup (session.js, views.js, main.js, new rxrows.js), the dose check (new DHP once-a-day warning
+quoting Standar Pengobatan 4; malaria-dose.json rebuilt, docs/malaria-dose-verification.csv now has 44 lines), the export (new dhp_times_day column), tests and README.
+
+Optional tidy-up (nothing runs these any more; they were the form-v3 evidence):
+  New-Item -ItemType Directory -Force legacy | Out-Null
+  git mv tests/record_eval.mjs legacy/ ; git mv tests/rx_eval.mjs legacy/ ; git mv tests/fixtures/record_ocr_fixtures.json legacy/

@@ -66,7 +66,7 @@ export function validateMalariaPack(pack) {
     if (!citeOk(s.cite)) errors.push(`species ${key}: citation (page or section AND exact quote) is required`);
   }
   if (!pack.species || Object.keys(pack.species).length === 0) errors.push('species: at least one plasmodium type is required');
-  for (const key of ['testPositive', 'dhpDays', 'primaquineInfant', 'g6pdDose', 'weightOverAge', 'obesity', 'dispersibleLimit', 'emptyStomach', 'severeTreatment', 'artesunateDose', 'artesunatePreReferral']) {
+  for (const key of ['testPositive', 'dhpDays', 'dhpOnceDaily', 'primaquineInfant', 'g6pdDose', 'weightOverAge', 'obesity', 'dispersibleLimit', 'emptyStomach', 'severeTreatment', 'artesunateDose', 'artesunatePreReferral']) {
     if (!citeOk(pack.statements && pack.statements[key])) errors.push(`statements.${key}: citation (page or section AND exact quote) is required`);
   }
   const a = pack.artesunate;
@@ -112,7 +112,7 @@ const fmtMg = (v) => String(Math.round(v * 10) / 10).replace('.', ',');
  * checkRegimen(pack, input)
  *  input: { weightKg, weightUncertain, ageMonths, species, formulation: 'standard'|'dispersible',
  *           testResult: 'positive'|'negative'|'none', treatment: 'uncomplicated'|'severe',
- *           dhpTablets: '1/2'|..., dhpDays, pqTablets: '0'|'1/4'|..., pqDays, artesunateMg, bbpbCategory,
+ *           dhpTablets: '1/2'|... (per DAY), dhpDays, dhpTimes (times per day, optional), pqTablets: '0'|'1/4'|..., pqDays, artesunateMg, bbpbCategory,
  *           pregnancy: 'none'|'pregnant'|'breastfeeding' (only asked for girls from about 10 years), g6pd: 'unknown'|'deficient' }
  *  returns { status: 'match'|'differs'|'cannot_check'|'nothing_to_compare', findings, expected, compared }
  *  A finding is { id, level: 'check'|'info', text, cite }. 'check' means "differs from the guideline or conflicts with it".
@@ -167,6 +167,7 @@ export function checkRegimen(pack, input) {
     compared.push({ kind: 'days', drug: 'DHP (hari)', expected: String(exp.dhp.days), entered: String(input.dhpDays), same: ok });
     if (!ok) add('dhp-days', 'check', `Lama DHP dicatat ${input.dhpDays} hari; pedoman ${exp.dhp.days} hari.`, S.dhpDays);
   }
+  if (Number.isFinite(input.dhpTimes) && input.dhpTimes > 1) add('dhp-frequency', 'check', `DHP ditulis ${input.dhpTimes} kali per hari. Pedoman: DHP diberikan sekali sehari (dosis pada H0, H1 dan H2).`, S.dhpOnceDaily);
   if (input.formulation === 'dispersible' && input.ageMonths < 6 && w < 5) add('dispersible-limit', 'check', 'DHP dispersibel terbatas untuk bayi usia 6 bulan ke atas atau berat 5 kg atau lebih; anak ini kurang dari keduanya.', S.dispersibleLimit);
 
   const pq = parseTablets(input.pqTablets); const pqGiven = pq && pq[0] > 0;

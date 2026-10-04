@@ -43,32 +43,48 @@ export function renderDebug(row) {
 
 const mark = (x) => (x && x.status === 'ok' ? '\u2714' : x && x.status === 'check' ? '\u26a0' : '\u2013');
 const tabLabel = (v) => (TABLET_OPTIONS.find((o) => o.value === v) || { label: v }).label;
-const RX_BOXES = [['rxDhpTabs', 'DHP, tablet per hari'], ['rxDhpDays', 'DHP, lama (hari)'], ['rxPqTabs', 'Primakuin, tablet per hari'], ['rxPqDays', 'Primakuin, lama (hari)']];
 const tabletChips = (key, cell) => (cell.candidates.length ? `<div class="cands">Pilihan bacaan: ${cell.candidates.map((v) => `<button type="button" class="chip-btn" data-fill="${key}" data-value="${esc(v)}" data-text="${esc(v)}">${esc(tabLabel(v))}</button>`).join(' ')}</div>` : '');
+const DRUG_OPTIONS = [['', 'baris kosong / tidak dipakai'], ['?', 'pilih obat'], ['dhp', 'DHP'], ['pq', 'Primakuin'], ['art', 'Artesunat'], ['other', 'Obat lain (diabaikan)']];
 
-function rxBox(key, label, cell) {
-  const control = key.endsWith('Tabs')
-    ? `<label>${esc(label)}<select id="f-${key}">${tabletOptions(cell.value ?? '')}</select></label>${tabletChips(key, cell)}`
-    : `<label>${esc(label)}<input id="f-${key}" inputmode="numeric" autocomplete="off" value="${esc(fmtField(cell.value, 0))}" /></label>${candidates(key, cell, 0)}`;
-  return `<div class="measure" data-kind="${key}"><div class="crop" data-crop="${key}"></div>${chip(cell.status)}${control}</div>`;
+function rxRow(row, cells) {
+  const r = row.n; const nm = row.name; const amt = cells[`rx${r}Amt`]; const fr = cells[`rx${r}Freq`]; const dy = cells[`rx${r}Days`];
+  const initial = row.empty ? '' : nm.drug || '?';
+  const status = row.empty ? 'empty' : worst([amt.status, fr.status, dy.status].map((x) => (x === 'empty' ? 'ok' : x)));
+  const nameNote = row.empty ? '' : nm.drug ? `Nama terbaca: <code>${esc(nm.text)}</code>${nm.status === 'check' ? ' (kurang yakin, periksa)' : ''}` : `Nama obat tidak dikenali${nm.text ? `: <code>${esc(nm.text)}</code>` : ''}. Pilih obatnya.`;
+  return `<div class="measure rxrow" data-kind="rxrow${r}"><h3>Baris ${r}</h3>
+    <div class="crop" data-crop="row${r}"></div>
+    ${row.empty ? '<p class="muted">Baris kosong: tidak dibaca. Bila ada tulisan di sini, pilih obatnya dan isi angkanya.</p>' : chip(status)}
+    ${nameNote ? `<p class="muted">${nameNote}</p>` : ''}
+    <label>Obat<select id="rx${r}-drug">${opts(DRUG_OPTIONS, initial)}</select></label>
+    <label>Tablet per dosis ${mark(amt)}<select id="f-rx${r}Amt">${tabletOptions(amt.value ?? '')}</select></label>${tabletChips(`rx${r}Amt`, amt)}
+    <div class="trio"><label>Kali per hari ${mark(fr)}<input id="f-rx${r}Freq" inputmode="numeric" autocomplete="off" value="${esc(fmtField(fr.value, 0))}" /></label>
+      <label>Hari ${mark(dy)}<input id="f-rx${r}Days" inputmode="numeric" autocomplete="off" value="${esc(fmtField(dy.value, 0))}" /></label></div>
+    ${candidates(`rx${r}Freq`, fr, 0)}${candidates(`rx${r}Days`, dy, 0)}
+    <p class="muted" id="rx${r}-perday"></p></div>`;
 }
 
 function rxBlock(row, info) {
   if (!info || !info.ok) return '<p class="muted">Paket dosis malaria tidak terpasang: diagnosis dan resep tidak diperiksa.</p>';
   const f = row.rx.fields; const c = row.cells; const pk = info.pack;
-  const any = RX_BOXES.some(([k]) => c[k].value !== null) || f.species.value !== null || f.artesunateMg.value !== null || f.testResult.value !== null;
+  const used = row.rows.filter((x) => !x.empty); const unused = row.rows.filter((x) => x.empty);
+  const any = used.some((x) => ['dhp', 'pq', 'art'].includes(x.name.drug)) || ['species', 'testResult', 'artesunateMg'].some((k) => f[k].value !== null);
   const speciesOpts = opts([['', 'tidak jelas: pilih'], ...Object.entries(pk.species).map(([k, sp]) => [k, sp.label])], f.species.value);
-  const notes = row.rx.notes.length ? `<div class="flags"><ul>${row.rx.notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></div>` : '';
-  return `${chip(any ? 'check' : 'empty', any ? 'Terbaca otomatis dari tulisan dan kotak resep: bandingkan setiap isian dengan gambarnya.' : 'Tidak ada diagnosis atau resep yang terbaca jelas. Isi sendiri di sini atau di kartu dosis.')}
+  const formDefault = row.rxAuto.formulation || f.formulation.value || 'standard';
+  const typeDefault = f.treatment.value === 'severe' || row.rxAuto.art ? 'severe' : 'uncomplicated';
+  const notes = [...row.rx.notes, ...row.rxAuto.notes];
+  const raw = [...row.rows.filter((x) => !x.empty).map((x) => `Baris ${x.n} nama: ${x.name.readings.filter(Boolean).join(' | ') || '(kosong)'}`), ...row.rx.parsed.map((x, i) => `${x.group === 'assess' ? 'Asessemen' : 'Planning'} ${i % 3 + 1}: ${x.text || '(kosong)'}`)].join('\n');
+  return `${chip(any ? 'check' : 'empty', any ? 'Terbaca otomatis dari baris resep dan tulisan: bandingkan setiap isian dengan gambarnya.' : 'Tidak ada diagnosis atau resep yang terbaca jelas. Isi sendiri di sini atau di kartu dosis.')}
+    <h4>Baris resep</h4>
+    ${used.map((x) => rxRow(x, c)).join('') || '<p class="muted">Tidak ada baris resep yang terisi.</p>'}
+    ${unused.length ? `<details><summary>Baris kosong (${unused.length}): buka bila ada tulisan yang terlewat</summary>${unused.map((x) => rxRow(x, c)).join('')}</details>` : ''}
     <label>Jenis malaria (dari tulisan Asessemen) ${mark(f.species)}<select id="rx-species">${speciesOpts}</select></label>
     <label>Hasil tes darah (dari tulisan) ${mark(f.testResult)}<select id="rx-test">${opts([['none', 'belum ada hasil'], ['positive', 'positif'], ['negative', 'negatif']], f.testResult.value ?? 'none')}</select></label>
-    <label>Jenis pengobatan ${mark(f.treatment)}<select id="rx-type">${opts([['uncomplicated', 'tanpa komplikasi (DHP + primakuin)'], ['severe', 'malaria berat (artesunat injeksi)']], f.treatment.value ?? 'uncomplicated')}</select></label>
-    <label>Sediaan DHP (kata "dispersibel" di Planning) ${mark(f.formulation)}<select id="rx-form">${opts([['standard', 'tablet biasa'], ['dispersible', 'tablet dispersibel (anak)']], f.formulation.value ?? 'standard')}</select></label>
-    ${RX_BOXES.map(([k, label]) => rxBox(k, label, c[k])).join('')}
+    <label>Jenis pengobatan<select id="rx-type">${opts([['uncomplicated', 'tanpa komplikasi (DHP + primakuin)'], ['severe', 'malaria berat (artesunat injeksi)']], typeDefault)}</select></label>
+    <label>Sediaan DHP (kata "dispersibel" di nama obat)<select id="rx-form">${opts([['standard', 'tablet biasa'], ['dispersible', 'tablet dispersibel (anak)']], formDefault)}</select></label>
     <label>Artesunat (mg), bila malaria berat ${mark(f.artesunateMg)}<input id="rx-art-mg" inputmode="decimal" value="${esc(f.artesunateMg.value === null ? '' : String(f.artesunateMg.value).replace('.', ','))}" /></label>
-    ${notes}
-    <details><summary>Teks yang dibaca dari tulisan bebas (hanya di layar, tidak disimpan)</summary><pre>${esc(row.rx.parsed.map((x, i) => `${x.group === 'assess' ? 'Asessemen' : 'Planning'} ${i % 3 + 1}: ${x.text || '(kosong)'}`).join('\n'))}</pre></details>
-    <label class="inline"><input id="c-rx-check" type="checkbox" /> Sesuai tulisan: saya sudah membandingkan diagnosis dan resep dengan gambarnya</label>`;
+    ${notes.length ? `<div class="flags"><ul>${notes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></div>` : ''}
+    <details><summary>Teks yang dibaca dari tulisan (hanya di layar, tidak disimpan)</summary><pre>${esc(raw)}</pre></details>
+    <label class="inline"><input id="c-rx-check" type="checkbox" /> Sesuai tulisan: saya sudah membandingkan nama obat, angka dan diagnosis dengan gambarnya</label>`;
 }
 
 /** The popup. Pictures go into the .crop placeholders afterwards (they are canvases). fields: MEDREC.fields. malariaInfo: the loaded dose pack. */
@@ -150,7 +166,7 @@ export function renderMalariaCard(c, info) {
     const why = info && info.errors && info.errors.length ? `Paket dosis malaria tidak valid dan tidak dipakai: ${esc(info.errors.join(' | '))}` : 'Paket dosis malaria tidak terpasang.';
     return `<div class="guide"><h3>Periksa dosis antimalaria</h3><p class="muted">${why}</p></div>`;
   }
-  const pk = info.pack; const r0 = c.rx || {}; const pre = { species: r0.species, test: r0.test, type: r0.type, form: r0.form, dhpTablets: r0.dhpTablets, dhpDays: r0.dhpDays ?? '', pqTablets: r0.pqTablets, pqDays: r0.pqDays ?? '', artesunateMg: r0.artesunateMg };
+  const pk = info.pack; const r0 = c.rx || {}; const pre = { species: r0.species, test: r0.test, type: r0.type, form: r0.form, dhpTablets: r0.dhpTablets, dhpDays: r0.dhpDays ?? '', dhpTimes: r0.dhpTimes ?? '', pqTablets: r0.pqTablets, pqDays: r0.pqDays ?? '', artesunateMg: r0.artesunateMg };
   const species = Object.entries(pk.species).map(([k, sp]) => `<option value="${esc(k)}"${pre.species === k ? ' selected' : ''}>${esc(sp.label)}</option>`).join('');
   const female10 = c.sex === 'P' && c.ageYears >= 10;
   const severe = pre.type === 'severe';
@@ -166,6 +182,7 @@ export function renderMalariaCard(c, info) {
       <label>Sediaan DHP<select id="ma-form">${opts([['standard', 'tablet biasa'], ['dispersible', 'tablet dispersibel (anak)']], pre.form ?? 'standard')}</select></label>
       <label>DHP, tablet per hari<select id="ma-dhp-tabs">${tabletOptions(pre.dhpTablets ?? '')}</select></label>
       <label>DHP, lama (hari)<input id="ma-dhp-days" inputmode="numeric" placeholder="mis. 3" value="${esc(pre.dhpDays ?? '')}" /></label>
+      <label>DHP, kali per hari (biasanya 1)<input id="ma-dhp-times" inputmode="numeric" placeholder="mis. 1" value="${esc(pre.dhpTimes ?? '')}" /></label>
       <label>Primakuin, tablet per hari<select id="ma-pq-tabs">${tabletOptions(pre.pqTablets ?? '')}</select></label>
       <label>Primakuin, lama (hari)<input id="ma-pq-days" inputmode="numeric" placeholder="mis. 1 atau 14" value="${esc(pre.pqDays ?? '')}" /></label>
     </div>

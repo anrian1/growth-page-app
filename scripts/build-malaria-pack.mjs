@@ -122,6 +122,7 @@ const pack = {
   statements: {
     testPositive: quote('Pengobatan dengan Artemisinin based Combination Therapy (ACT) hanya diberikan kepada penderita dengan hasil pemeriksaan darah malaria positif.', 'Standar Pengobatan 2'),
     dhpDays: quote('Pengobatan DHP diberikan selama 3 hari sesuai dengan berat badan', 'Standar Pengobatan 4'),
+    dhpOnceDaily: quote('Pengobatan DHP diberikan selama 3 hari sesuai dengan berat badan, yaitu H(hari) 0 (nol) pada dosis pertama, H1 pada dosis kedua dan H2 pada dosis ketiga.', 'Standar Pengobatan 4'),
     primaquineInfant: quote('Tidak diberikan Primakuin pada bayi <6 bulan, ibu hamil, ibu menyusui bayi usia <6 bulan dan penderita malaria dengan defisiensi enzim G6PD.', 'Standar Pengobatan 3'),
     weightOverAge: quote('Apabila ada ketidaksesuaian antara umur dan berat badan (pada tabel pengobatan), maka dosis yang dipakai adalah berdasarkan berat badan.', 'Catatan b'),
     obesity: quote('Untuk anak dengan obesitas gunakan dosis berdasarkan berat badan ideal', 'Catatan c'),

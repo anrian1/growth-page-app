@@ -28,8 +28,8 @@ def line(c, x1, y1, x2, y2, lw=0.8, dash=None):
     c.line(x1, H - y1, x2, H - y2)
     c.setDash()
 
-c = canvas.Canvas('rekam-medis-contoh.pdf', pagesize=A4)
-c.setTitle('Rekam Medis (contoh sintetis, revisi 3)')
+c = canvas.Canvas('rekam-medis-v4.pdf', pagesize=A4)
+c.setTitle('Rekam Medis (contoh sintetis, revisi 4)')
 L, R = 28.35, W - 28.35
 
 # ---- header
@@ -75,7 +75,7 @@ for i, label in enumerate(('Riwayat Alergi', 'Riwayat Penyakit Dahulu', 'Riwayat
     rect(c, xs3[i], t0 + 22, xs3[i + 1] - xs3[i], 22, 0.8)
 
 # ---- main table
-cols = [24, 36, 52, 31, 37, 10]            # millimetres: TGL, SUBJEKTIF, OBJEKTIF, ASESSEMEN, PLANNING, TT
+cols = [24, 30, 50, 30, 46, 10]            # millimetres: TGL, SUBJEKTIF, OBJEKTIF, ASESSEMEN, PLANNING, TT
 xb = [L]
 for w in cols: xb.append(xb[-1] + w * mm)
 top, h1, h2, bottom = 314, 18, 30, 800
@@ -87,8 +87,8 @@ txt(c, 'TGL', mid(0), top + h1 + 6, 9.5, BOLD, 'center')
 for i, head in enumerate(('SUBJEKTIF', 'OBJEKTIF', 'ASSESMENT', 'PLANNING', 'TT'), start=1): txt(c, head, mid(i), top + 13, 9.5, BOLD, 'center')
 txt(c, 'Anamnesis', mid(1), top + h1 + 17, 9, BOLD, 'center')
 txt(c, 'Pemeriksaan fisik dan', mid(2), top + h1 + 13, 9, BOLD, 'center'); txt(c, 'penunjang', mid(2), top + h1 + 25, 9, BOLD, 'center')
-txt(c, 'Diagnosis', mid(3), top + h1 + 13, 9, BOLD, 'center'); txt(c, '(Keputusan Klinis)', mid(3), top + h1 + 25, 9, BOLD, 'center')
-txt(c, 'Rencana Layanan Klinis', mid(4), top + h1 + 17, 8.2, BOLD, 'center')
+txt(c, 'Diagnosis', mid(3), top + h1 + 13, 8.5, BOLD, 'center'); txt(c, '(Keputusan Klinis)', mid(3), top + h1 + 25, 8.5, BOLD, 'center')
+txt(c, 'Rencana Layanan Klinis', mid(4), top + h1 + 17, 9, BOLD, 'center')
 
 body = top + h1 + h2
 # TGL column: three stacked date boxes
@@ -97,8 +97,8 @@ for i, (name, cap, bw) in enumerate((('tglD', 'tgl', 34), ('tglM', 'bln', 34), (
     txt(c, cap, xb[0] + 3, by_ + 15, 6.5, FONT, anchor=False, grey=0.35)
     rect(c, xb[0] + 13, by_, bw if name != 'tglY' else 52, 24, 0.9, name)
 # SUBJEKTIF labels
-txt(c, 'Keluhan Utama :', xb[1] + 4, body + 20, 9)
-txt(c, 'Keluhan Tambahan :', xb[1] + 4, body + 40, 9)
+txt(c, 'Keluhan Utama :', xb[1] + 4, body + 20, 8)
+txt(c, 'Keluhan Tambahan :', xb[1] + 4, body + 40, 8)
 # OBJEKTIF: six labelled boxes
 rows = [('TD', 'mmHg'), ('HR', 'x/mnt'), ('RR', 'x/mnt'), ('T', '\u00b0C'), ('TB', 'cm'), ('BB', 'kg')]
 for i, (lab, unit) in enumerate(rows):
@@ -109,17 +109,21 @@ for i, (lab, unit) in enumerate(rows):
     else:
         key = {'HR': 'hr', 'RR': 'rr', 'T': 'temp', 'TB': 'height', 'BB': 'weight'}[lab]
         rect(c, xb[2] + 34, ry, 70, 28, 0.9, key)
-# PLANNING: four numeric boxes for the prescription (the amounts are read like the vitals), free text below them
-rx_rows = [('DHP', 'tablet/hari', 'rxDhpTabs'), ('DHP', 'hari', 'rxDhpDays'), ('Primakuin', 'tablet/hari', 'rxPqTabs'), ('Primakuin', 'hari', 'rxPqDays')]
-for i, (drug, unit, key) in enumerate(rx_rows):
-    ry = body + 12 + i * 40
-    txt(c, drug, xb[4] + 4, ry + 12, 8, BOLD, anchor=False); txt(c, unit, xb[4] + 4, ry + 23, 6.5, FONT, anchor=False, grey=0.35)
-    rect(c, xb[4] + 50, ry, 50, 28, 0.9, key)
-txt(c, 'lain-lain / artesunat / dispersibel', xb[4] + 4, body + 12 + 4 * 40 + 6, 6.5, FONT, anchor=False, grey=0.35)
+# PLANNING v4: five prescription rows. Each row = a free-text box for the drug NAME and three numeric boxes under it:
+# tablets per dose, times per day, number of days.  (tablets per day = tablets per dose x times per day)
+txt(c, 'Resep: nama obat + dosis', xb[4] + 4, body + 10, 6.5, FONT, anchor=False, grey=0.35)
+for r in range(1, 6):
+    y0 = body + 18 + (r - 1) * 60
+    txt(c, str(r), xb[4] + 4, y0 + 14, 8, BOLD, anchor=False)
+    rect(c, xb[4] + 14, y0, 112, 20, 0.9, f'rx{r}Name')
+    for (key, x, w, cap) in ((f'rx{r}Amt', 14, 42, 'tab/dosis'), (f'rx{r}Freq', 59, 32, 'x/hari'), (f'rx{r}Days', 94, 32, 'hari')):
+        rect(c, xb[4] + x, y0 + 23, w, 24, 0.9, key)
+        txt(c, cap, xb[4] + x + w / 2, y0 + 55, 6, FONT, 'center', anchor=False, grey=0.35)
+txt(c, 'lain-lain / artesunat / dispersibel', xb[4] + 4, body + 18 + 5 * 60 + 4, 6.5, FONT, anchor=False, grey=0.35)
 # free-text areas shown as pictures (not read)
 free = {'keluhan': {'x': xb[1] + 3, 'y': body + 48, 'w': cols[1] * mm - 6, 'h': 150},
         'asessmen': {'x': xb[3] + 3, 'y': body + 6, 'w': cols[3] * mm - 6, 'h': 160},
-        'planning': {'x': xb[4] + 3, 'y': body + 12 + 4 * 40 + 12, 'w': cols[4] * mm - 6, 'h': 130}}
+        'planning': {'x': xb[4] + 3, 'y': body + 330, 'w': cols[4] * mm - 6, 'h': 98}}
 txt(c, 'Contoh sintetis untuk uji coba - bukan formulir resmi. Jangan menulis data pasien sungguhan.', W / 2, 820, 7, FONT, 'center', grey=0.35)
 c.showPage(); c.save()
 
@@ -127,15 +131,16 @@ RANGES = {  # UPDATE ME: a clinician should confirm these (children 0-18 years)
     'sys': ('Tekanan darah sistolik', 'mmHg', 50, 200, 0), 'dia': ('Tekanan darah diastolik', 'mmHg', 20, 140, 0),
     'hr': ('HR (nadi)', 'x/menit', 40, 220, 0), 'rr': ('RR (napas)', 'x/menit', 8, 80, 0), 'temp': ('Suhu (T)', 'C', 34, 43, 1),
     'height': ('Panjang/tinggi badan (TB)', 'cm', 30, 200, 1), 'weight': ('Berat badan (BB)', 'kg', 1.5, 120, 1),
-    'mrn': ('Nomor rekam medis', '', 0, 0, 0), 'rxDhpTabs': ('DHP, tablet per hari', 'tablet', 0.25, 5, 0), 'rxDhpDays': ('DHP, lama', 'hari', 1, 30, 0),
-    'rxPqTabs': ('Primakuin, tablet per hari', 'tablet', 0.25, 5, 0), 'rxPqDays': ('Primakuin, lama', 'hari', 1, 30, 0),
+    'mrn': ('Nomor rekam medis', '', 0, 0, 0),
+    
+    **{k: v for r in range(1, 6) for k, v in {f'rx{r}Amt': (f'Obat {r}: tablet per dosis', 'tablet', 0.25, 5, 0), f'rx{r}Freq': (f'Obat {r}: kali per hari', 'x/hari', 1, 6, 0), f'rx{r}Days': (f'Obat {r}: lama', 'hari', 1, 30, 0)}.items()},
     'dobD': ('Tanggal lahir: tanggal', '', 1, 31, 0), 'dobM': ('Tanggal lahir: bulan', '', 1, 12, 0), 'dobY': ('Tanggal lahir: tahun', '', 1990, 2100, 0),
     'tglD': ('TGL: tanggal', '', 1, 31, 0), 'tglM': ('TGL: bulan', '', 1, 12, 0), 'tglY': ('TGL: tahun', '', 2000, 2100, 0),
 }
-KIND = {'mrn': 'mrn', 'rxDhpTabs': 'tablets', 'rxPqTabs': 'tablets'}
+KIND = {'mrn': 'mrn', **{f'rx{r}Amt': 'tablets' for r in range(1, 6)}}
 fields = {k: {'label': v[0], 'unit': v[1], 'range': [v[2], v[3]], 'decimals': v[4], 'box': boxes[k], **({'kind': KIND[k]} if k in KIND else {})} for k, v in RANGES.items()}
 ticks = {k: {'label': 'Laki-laki' if k == 'sexL' else 'Perempuan', 'box': boxes[k]} for k in ('sexL', 'sexP')}
-tpl = {'id': 'rekam-medis-contoh-v3', 'title': 'REKAM MEDIS (contoh sintetis, revisi 3)', 'synthetic': True, 'page': {'w': round(W, 2), 'h': round(H, 2)},
-       'labels': labels, 'pii': pii, 'fields': fields, 'ticks': ticks, 'freeText': {k: {kk: round(vv, 2) for kk, vv in v.items()} for k, v in free.items()}}
-json.dump(tpl, open('medical-record-template.json', 'w'), indent=1, ensure_ascii=False)
+tpl = {'id': 'rekam-medis-contoh-v4', 'title': 'REKAM MEDIS (contoh sintetis, revisi 4)', 'synthetic': True, 'page': {'w': round(W, 2), 'h': round(H, 2)},
+       'labels': labels, 'pii': pii, 'fields': fields, 'names': {f'rx{r}Name': {'label': f'Obat {r}: nama obat', 'box': boxes[f'rx{r}Name']} for r in range(1, 6)}, 'ticks': ticks, 'freeText': {k: {kk: round(vv, 2) for kk, vv in v.items()} for k, v in free.items()}}
+json.dump(tpl, open('medical-record-template-v4.json', 'w'), indent=1, ensure_ascii=False)
 print(len(labels), 'anchor labels,', len(fields), 'numeric fields,', len(ticks), 'tick boxes')

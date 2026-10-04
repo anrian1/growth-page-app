@@ -408,6 +408,11 @@
    "section": "Standar Pengobatan 4",
    "quote": "Pengobatan DHP diberikan selama 3 hari sesuai dengan berat badan"
   },
+  "dhpOnceDaily": {
+   "page": "1–2",
+   "section": "Standar Pengobatan 4",
+   "quote": "Pengobatan DHP diberikan selama 3 hari sesuai dengan berat badan, yaitu H(hari) 0 (nol) pada dosis pertama, H1 pada dosis kedua dan H2 pada dosis ketiga."
+  },
   "primaquineInfant": {
    "page": "1–2",
    "section": "Standar Pengobatan 3",

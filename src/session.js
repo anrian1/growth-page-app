@@ -3,13 +3,14 @@
 //   2. readRow : for one child (one sex, one month) read only the two handwriting cells, several times each.
 // The browser parts (photo, engine) are passed in, so this file can be tested with fakes.
 import { mapTokens, cellRect, latestFilledMonth } from './mapping.js';
-import { readCell, readSex } from './readcell.js';
+import { readCell, readSex, tokensToText, INK_MIN } from './readcell.js';
 import { TEMPLATE } from './template.js';
 import { applyH } from './align.js';
 import { alignClinicPage, alignByTemplate, placeBox, readRect, CLINIC, CLINIC_FIELDS } from './clinic.js';
 import MEDREC from './templates/medical-record.js';
 import { voteRx } from './rxparse.js';
 import { FIELD_PARSERS } from './fieldparse.js';
+import { ROW_NUMBERS, voteDrugName, assembleRx } from './rxrows.js';
 
 export const PAGE_MAX_SIDE = 1600;     // the whole-page reading is done on a picture no bigger than this
 const CELL_OCR_OPTIONS = { minimumConfidence: 0.2 };   // keep weak readings: they are only votes, and a person confirms
@@ -155,8 +156,24 @@ export async function readRecordFields(session, { engine, photo, onProgress = ()
   const toSource = (r) => ({ x: r.x * session.factor, y: r.y * session.factor, w: r.w * session.factor, h: r.h * session.factor });
   const cells = {}; const rects = {};
   let n = 0;
+  // prescription rows (form v4): a row is EMPTY when the name box and its three number boxes show no ink. Empty rows are not read at all (saves time).
+  const rowKeys = (r) => [`rx${r}Amt`, `rx${r}Freq`, `rx${r}Days`];
+  const rowUsed = {};
+  for (const r of ROW_NUMBERS) {
+    let used = false;
+    const boxes = [MEDREC.names[`rx${r}Name`].box, ...rowKeys(r).map((k) => MEDREC.fields[k].box)];
+    for (const b of boxes) { const pic = await photo.crop(session.img, toSource(readRect(placeBox(aligned.H, b))), 96); if (photo.ink(pic) >= INK_MIN) used = true; }
+    rowUsed[r] = used;
+  }
+  const rowOf = (key) => { const m = /^rx(\d)(Amt|Freq|Days)$/.exec(key); return m ? Number(m[1]) : null; };
   for (const key of RECORD_FIELDS) {
     const field = MEDREC.fields[key];
+    const rr = rowOf(key);
+    if (rr !== null && !rowUsed[rr]) {
+      rects[key] = toSource(bounds(placeBox(aligned.H, field.box)));
+      cells[key] = { column: key, status: 'empty', value: null, candidates: [], readings: [], ink: 0, hasInk: false, why: ['the row is empty'] };
+      continue;
+    }
     n += 1;
     onProgress(`Membaca ${field.label} (${n}/${RECORD_FIELDS.length})…`);
     const poly = placeBox(aligned.H, field.box);
@@ -170,6 +187,20 @@ export async function readRecordFields(session, { engine, photo, onProgress = ()
       recognize: (picture) => engine.recognize(picture, CELL_OCR_OPTIONS),
       measureInk: (picture) => photo.ink(picture),
     });
+  }
+  // the drug NAME of each used row: read as text (page reading + 3 crops), matched to a fixed list, voted
+  const names = {};
+  for (const r of ROW_NUMBERS) {
+    const nb = MEDREC.names[`rx${r}Name`].box; const poly = placeBox(aligned.H, nb);
+    rects[`rx${r}Name`] = toSource(bounds(poly));
+    if (!rowUsed[r]) { names[r] = { drug: null, status: 'empty', votes: 0, of: 0, candidates: [], dispersible: false, text: '', readings: [] }; continue; }
+    onProgress(`Membaca nama obat, baris ${r}…`);
+    const pageText = session.tokens.filter((t) => inside(poly, t.x + t.w / 2, t.y + t.h / 2)).sort((a, b) => a.x - b.x).map((t) => t.text.trim()).filter(Boolean).join(' ');
+    const readings = [pageText];
+    for (const h of [96, 128, 160]) {
+      try { readings.push(tokensToText(await engine.recognize(await photo.crop(session.img, toSource(readRect(poly)), h), CELL_OCR_OPTIONS))); } catch (e) { readings.push(''); }
+    }
+    names[r] = { ...voteDrugName(readings), readings };
   }
   onProgress('Membaca kotak LK/PR…');
   const ratios = {}; const tickRects = {};
@@ -197,6 +228,9 @@ export async function readRecordFields(session, { engine, photo, onProgress = ()
   }
   const rx = voteRx({ assess: texts.asessmen, plan: texts.planning });
   const union = (list) => { const x0 = Math.min(...list.map((r) => r.x)); const y0 = Math.min(...list.map((r) => r.y)); const x1 = Math.max(...list.map((r) => r.x + r.w)); const y1 = Math.max(...list.map((r) => r.y + r.h)); const m = 6 * session.factor; return { x: x0 - m, y: y0 - m, w: x1 - x0 + 2 * m, h: y1 - y0 + 2 * m }; };
-  const strips = { dob: union([rects.dobD, rects.dobM, rects.dobY]), tgl: union([rects.tglD, rects.tglM, rects.tglY]), sex: union([tickRects.sexL, tickRects.sexP]), td: union([rects.sys, rects.dia]) };
-  return { cells, rects, sex, ticks: { ratios, rects: tickRects }, pictures, strips, rx, texts, flags: [] };
+  const rows = ROW_NUMBERS.map((r) => ({ n: r, empty: !rowUsed[r], name: names[r], amount: cells[`rx${r}Amt`].value, freq: cells[`rx${r}Freq`].value, days: cells[`rx${r}Days`].value, drug: names[r].drug || '', dispersible: names[r].dispersible }));
+  const rxAuto = assembleRx(rows);
+  const rowStrips = Object.fromEntries(ROW_NUMBERS.map((r) => [`row${r}`, union([rects[`rx${r}Name`], ...rowKeys(r).map((k) => rects[k])])]));
+  const strips = { ...rowStrips, dob: union([rects.dobD, rects.dobM, rects.dobY]), tgl: union([rects.tglD, rects.tglM, rects.tglY]), sex: union([tickRects.sexL, tickRects.sexP]), td: union([rects.sys, rects.dia]) };
+  return { cells, rects, sex, ticks: { ratios, rects: tickRects }, pictures, strips, rx, texts, rows, rxAuto, flags: [] };
 }

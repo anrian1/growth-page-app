@@ -1,9 +1,4 @@
-// The "blank page" for the revised synthetic medical record (public/forms/rekam-medis-contoh.pdf), written down as data.
-// GENERATED from the same description that draws the form (medrec/make_form.py), so the picture and this template cannot disagree.
-// Coordinates are PDF points, origin at the top-left of the A4 page.
-// SYNTHETIC: a form designed for testing, based on the layout of a paper SOAP record. Real forms need their own template.
-// Plausible ranges are placeholders for a clinician to confirm (UPDATE ME). They cover children 0-18 years.
-export default {
+{
  "id": "rekam-medis-contoh-v4",
  "title": "REKAM MEDIS (contoh sintetis, revisi 4)",
  "synthetic": true,
@@ -790,4 +785,4 @@ export default {
    "h": 98
   }
  }
-};
+}

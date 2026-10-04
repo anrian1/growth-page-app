@@ -6,7 +6,8 @@ import { addRecord, allRecords, clearAll, markExported } from './storage.js';
 import * as photo from './photo.js';
 import { readRecordPage, readRecordFields, MEDREC } from './session.js';
 import { renderRecordConfirm, renderRecordResult, renderMalariaOut, esc } from './views.js';
-import { loadMalariaPack, checkRegimen } from './malaria.js';
+import { loadMalariaPack, checkRegimen, TABLET_OPTIONS } from './malaria.js';
+import { ROW_NUMBERS, assembleRx, tabletsPerDay } from './rxrows.js';
 import { makeDate, checkAge } from './recorddate.js';
 import { checkRecordValues } from './recordchecks.js';
 
@@ -16,7 +17,7 @@ const pad = (n) => String(n).padStart(2, '0');
 const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 const VITALS = ['sys', 'dia', 'hr', 'rr', 'temp', 'height', 'weight'];
 const DATE_KEYS = ['dobD', 'dobM', 'dobY', 'tglD', 'tglM', 'tglY'];
-const RX_KEYS = ['rxDhpTabs', 'rxDhpDays', 'rxPqTabs', 'rxPqDays'];
+const tabLabel = (v) => (TABLET_OPTIONS.find((o) => o.value === v) || { label: v }).label;
 
 // ---------------------------------------------------------------- offline status
 function setStatus(kind, text) { const el = $('status'); el.className = `banner ${kind}`; el.textContent = text; }
@@ -46,6 +47,7 @@ const cleanMrn = (t) => String(t ?? '').replace(/[\s\-.]/g, '');
 let session = null;    // the photo that was read
 let row = null;        // what was read from it
 let current = null;    // a result waiting to be saved
+let initialRxSig = ''; // the prescription as the app pre-filled it, to tell whether a person changed it
 let malariaInfo = { ok: false, absent: true, errors: [] };   // the malaria dose pack (public/guidelines/malaria-dose.json)
 loadMalariaPack(typeof fetch === 'function' ? fetch : async () => ({ ok: false })).then((r) => { malariaInfo = r; });
 
@@ -102,14 +104,19 @@ function openConfirm() {
     const holder = overlay.querySelector(`[data-crop="${selector}"]`); if (!holder || !rect) return;
     try { holder.appendChild(photo.thumb(session.img, rect, width)); } catch (e) { holder.textContent = '(gambar tidak tersedia)'; }
   };
-  for (const k of ['hr', 'rr', 'temp', 'height', 'weight', ...RX_KEYS]) put(k, row.rects[k], 220);
+  for (const k of ['hr', 'rr', 'temp', 'height', 'weight']) put(k, row.rects[k], 220);
+  for (const r of ROW_NUMBERS) put(`row${r}`, row.strips[`row${r}`], 340);
   put('mrn', row.rects.mrn, 320);
   for (const [k, rect] of Object.entries(row.strips)) put(`strip-${k}`, rect, 300);
   for (const [k, rect] of Object.entries(row.pictures)) put(`pic-${k}`, rect, 300);
   $('c-json').value = JSON.stringify({ sex: row.sex, ticks: row.ticks.ratios, tokens: session.tokens.length, piiDropped: session.piiDropped, anchors: session.aligned.anchors });
   overlay.querySelectorAll('[data-fill]').forEach((b) => b.addEventListener('click', () => { const el = $(`f-${b.dataset.fill}`); if (el) el.value = b.dataset.text || b.dataset.value; updateAge(); }));
   for (const k of DATE_KEYS) $(`f-${k}`).addEventListener('input', () => updateAge());
+  const refreshRow = (r) => { const t = tabletsPerDay($(`f-rx${r}Amt`).value, intOrNull($(`f-rx${r}Freq`).value)); const el = $(`rx${r}-perday`); if (el) el.textContent = t.value ? `= ${tabLabel(t.value)} tablet per hari (tablet per dosis x kali per hari)` : ''; };
+  for (const r of ROW_NUMBERS) { for (const id of [`f-rx${r}Amt`, `f-rx${r}Freq`]) { $(id).addEventListener('input', () => refreshRow(r)); $(id).addEventListener('change', () => refreshRow(r)); } refreshRow(r); }
+  overlay.querySelectorAll('[data-fill]').forEach((b) => b.addEventListener('click', () => { const m = /^rx(\d)/.exec(b.dataset.fill); if (m) refreshRow(Number(m[1])); }));
   updateAge();
+  initialRxSig = rxSignature();
   $('c-ok').addEventListener('click', confirmValues);
   $('c-retake').addEventListener('click', closeConfirm);
 }
@@ -125,12 +132,23 @@ function sourceOf(cell, finalValue) {
 const SOURCE_RANK = { photo_ok: 0, photo_checked: 1, photo_chosen: 2, photo_edited: 3, typed: 4 };
 const leastCertain = (list) => list.filter(Boolean).reduce((w, s) => (SOURCE_RANK[s] > SOURCE_RANK[w] ? s : w), 'photo_ok');
 
-/** The prescription as it stands in the popup (or manual form): { species, test, type, form, dhpTablets, dhpDays, pqTablets, pqDays, artesunateMg } */
+/** The five prescription rows as they stand in the popup. */
+function readRows() {
+  return ROW_NUMBERS.map((r) => ({ n: r, drug: $(`rx${r}-drug`).value, amount: $(`f-rx${r}Amt`).value || null, freq: intOrNull($(`f-rx${r}Freq`).value), days: intOrNull($(`f-rx${r}Days`).value), dispersible: row.rows[r - 1].dispersible }));
+}
+function rxSignature() {
+  const v = (id) => ($(id) ? $(id).value : '');
+  return JSON.stringify([readRows().map((x) => [x.drug, x.amount, x.freq, x.days]), v('rx-species'), v('rx-test'), v('rx-type'), v('rx-form'), v('rx-art-mg')]);
+}
+/** The prescription as it stands in the popup: { species, test, type, form, dhpTablets (per DAY), dhpDays, dhpTimes, pqTablets, pqDays, artesunateMg, notes, conflicts } */
 function readRxFromPopup() {
   const v = (id) => ($(id) ? $(id).value : '');
+  const a = assembleRx(readRows());
   const art = parseNumber(v('rx-art-mg'));
+  const ok = (x) => (x && !x.conflict ? x : null);
   return { species: v('rx-species'), test: v('rx-test') || 'none', type: v('rx-type') || 'uncomplicated', form: v('rx-form') || 'standard',
-    dhpTablets: v('f-rxDhpTabs'), dhpDays: intOrNull(v('f-rxDhpDays')), pqTablets: v('f-rxPqTabs'), pqDays: intOrNull(v('f-rxPqDays')), artesunateMg: Number.isNaN(art) ? null : art };
+    dhpTablets: ok(a.dhp)?.tablets ?? '', dhpDays: ok(a.dhp)?.days ?? null, dhpTimes: ok(a.dhp)?.times ?? null, pqTablets: ok(a.pq)?.tablets ?? '', pqDays: ok(a.pq)?.days ?? null,
+    artesunateMg: Number.isNaN(art) ? null : art, notes: a.notes, conflicts: a.conflicts };
 }
 const rxHasContent = (rx) => !!(rx.species || rx.dhpTablets || rx.dhpDays || rx.pqTablets || rx.pqDays || rx.artesunateMg || rx.test !== 'none' || rx.type === 'severe');
 
@@ -152,11 +170,16 @@ function confirmValues() {
   if (values.weight === null) { show('confirm-error', 'Isi berat badan (BB): dibutuhkan untuk status gizi dan dosis.'); return; }
   const needsCheck = Object.values(row.cells).some((x) => x.status !== 'ok' && x.status !== 'empty') || row.sex.status !== 'ok';
   if (needsCheck && !($('c-check') && $('c-check').checked)) { show('confirm-error', 'Centang "Saya sudah membandingkan semua angka dengan tulisan di foto".'); return; }
+  // every row that has writing needs a drug chosen; the same drug may not sit in two rows
+  for (const x of readRows()) {
+    const hasNumbers = !!x.amount || x.freq !== null || x.days !== null;
+    if (x.drug === '?' || (x.drug === '' && hasNumbers)) { show('confirm-error', `Baris ${x.n}: pilih obatnya (atau "Obat lain" bila bukan antimalaria).`); return; }
+  }
   const rx = readRxFromPopup();
-  const auto = row.rx.fields; const autoAny = RX_KEYS.some((k) => row.cells[k].value !== null) || ['species', 'testResult', 'artesunateMg'].some((k) => auto[k].value !== null);
-  if (autoAny && !($('c-rx-check') && $('c-rx-check').checked)) { show('confirm-error', 'Centang "Sesuai tulisan" setelah membandingkan diagnosis dan resep dengan gambarnya.'); return; }
-  const unchanged = rx.species === (auto.species.value ?? '') && rx.dhpTablets === (row.cells.rxDhpTabs.value ?? '') && rx.dhpDays === row.cells.rxDhpDays.value && rx.pqTablets === (row.cells.rxPqTabs.value ?? '') && rx.pqDays === row.cells.rxPqDays.value
-    && (rx.artesunateMg ?? null) === (auto.artesunateMg.value ?? null);
+  if (rx.conflicts.length) { show('confirm-error', rx.notes.find((n) => /baris/.test(n)) || 'Obat yang sama ada di dua baris.'); return; }
+  const autoAny = row.rows.some((x) => !x.empty && ['dhp', 'pq', 'art'].includes(x.name.drug)) || ['species', 'testResult', 'artesunateMg'].some((k) => row.rx.fields[k].value !== null);
+  if (autoAny && !($('c-rx-check') && $('c-rx-check').checked)) { show('confirm-error', 'Centang "Sesuai tulisan" setelah membandingkan nama obat, angka dan diagnosis dengan gambarnya.'); return; }
+  const unchanged = rxSignature() === initialRxSig;
   const rxSource = !rxHasContent(rx) ? 'not_recorded' : !autoAny ? 'typed' : unchanged ? 'photo_confirmed' : 'photo_edited';
   const sources = {};
   for (const k of VITALS) sources[k] = sourceOf(row.cells[k], values[k]);
@@ -227,14 +250,14 @@ function runDoseCheck() {
   const input = {
     weightKg: current.weightKg, weightUncertain: current.weightUncertain, ageMonths: current.ageMonths,
     species: $('ma-species').value, formulation: $('ma-form').value, testResult: $('ma-test').value, treatment: $('ma-type').value,
-    dhpTablets: $('ma-dhp-tabs').value, dhpDays: num('ma-dhp-days'), pqTablets: $('ma-pq-tabs').value, pqDays: num('ma-pq-days'),
+    dhpTablets: $('ma-dhp-tabs').value, dhpDays: num('ma-dhp-days'), dhpTimes: num('ma-dhp-times'), pqTablets: $('ma-pq-tabs').value, pqDays: num('ma-pq-days'),
     artesunateMg: num('ma-art-mg'), bbpbCategory: current.bbpbCategory, pregnancy: $('ma-preg') ? $('ma-preg').value : undefined, g6pd: $('ma-g6pd').value,
   };
   const outcome = checkRegimen(malariaInfo.pack, input);
   $('ma-out').innerHTML = renderMalariaOut(outcome, malariaInfo.pack);
   current.malaria = {
     status: outcome.status, species: input.species, formulation: input.treatment === 'severe' ? 'artesunate' : input.formulation, treatment: input.treatment, testResult: input.testResult,
-    dhpTablets: input.dhpTablets, dhpDays: input.dhpDays, pqTablets: input.pqTablets, pqDays: input.pqDays, artesunateMg: input.artesunateMg, g6pd: input.g6pd, pregnancy: input.pregnancy,
+    dhpTablets: input.dhpTablets, dhpDays: input.dhpDays, dhpTimes: input.dhpTimes, pqTablets: input.pqTablets, pqDays: input.pqDays, artesunateMg: input.artesunateMg, g6pd: input.g6pd, pregnancy: input.pregnancy,
     findings: outcome.findings.map((f) => ({ id: f.id, level: f.level })), packId: malariaInfo.pack.id, packDraft: malariaInfo.pack.draft,
   };
 }

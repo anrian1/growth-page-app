@@ -27,7 +27,22 @@
     "pqTablets": "",
     "pqDays": ""
    },
+   "rxRows": [
+    {
+     "name": "DHP",
+     "amount": "1/2",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "Amoksisilin",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "5"
+    }
+   ],
    "regimenText": "DHP ½ tab 1x1 selama 3 hari",
+   "dhpFreq": 1,
    "note": "Infant under 6 months, correct: DHP only, no primaquine",
    "app": {
     "species": "falciparum",
@@ -51,7 +66,8 @@
     "doseChecks": [],
     "doseNotes": [
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -79,7 +95,28 @@
     "pqTablets": "1/4",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "Dihidroartemisinin-piperakuin",
+     "amount": "1/3",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "Primaquine",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "1"
+    },
+    {
+     "name": "Paracetamol",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "3"
+    }
+   ],
    "regimenText": "DHP ⅓ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "dhpFreq": 1,
    "note": "ERROR: primaquine given to an infant under 6 months",
    "app": {
     "species": "falciparum",
@@ -107,7 +144,8 @@
     "doseNotes": [
      "weight-over-age",
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -135,7 +173,22 @@
     "pqTablets": "1/4",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "DHP",
+     "amount": "1/2",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "PQ",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "1"
+    }
+   ],
    "regimenText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "dhpFreq": 1,
    "note": "Correct: P. falciparum, DHP and primaquine 1 day",
    "app": {
     "species": "falciparum",
@@ -160,7 +213,8 @@
     "doseChecks": [],
     "doseNotes": [
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -188,7 +242,28 @@
     "pqTablets": "1/4",
     "pqDays": "14"
    },
+   "rxRows": [
+    {
+     "name": "Primakuin",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "14"
+    },
+    {
+     "name": "DHP",
+     "amount": "1/2",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "Paracetamol",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "3"
+    }
+   ],
    "regimenText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
+   "dhpFreq": 1,
    "note": "Correct: P. vivax, primaquine 14 days",
    "app": {
     "species": "vivax",
@@ -213,7 +288,8 @@
     "doseChecks": [],
     "doseNotes": [
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -241,7 +317,28 @@
     "pqTablets": "1/4",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "Dihidroartemisinin-piperakuin",
+     "amount": "1/2",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "Primaquine",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "1"
+    },
+    {
+     "name": "Paracetamol",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "3"
+    }
+   ],
    "regimenText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "dhpFreq": 1,
    "note": "ERROR: P. vivax with primaquine for 1 day instead of 14",
    "app": {
     "species": "vivax",
@@ -268,7 +365,8 @@
     ],
     "doseNotes": [
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -296,7 +394,34 @@
     "pqTablets": "1/4",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "DHP",
+     "amount": "1/2",
+     "perDay": "2",
+     "days": "3"
+    },
+    {
+     "name": "PQ",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "1"
+    },
+    {
+     "name": "Paracetamol",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "3"
+    },
+    {
+     "name": "Amoksisilin",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "5"
+    }
+   ],
    "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "dhpFreq": 2,
    "note": "ERROR: DHP amount doubled",
    "app": {
     "species": "falciparum",
@@ -324,6 +449,9 @@
     "doseNotes": [
      "weight-over-age",
      "empty-stomach"
+    ],
+    "v4Extra": [
+     "dhp-frequency"
     ]
    }
   },
@@ -352,7 +480,22 @@
     "pqTablets": "1/4",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "Dihidroartemisinin-piperakuin dispersibel",
+     "amount": "1 1/2",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "Primakuin",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "1"
+    }
+   ],
    "regimenText": "DHP dispersibel 1½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "dhpFreq": 1,
    "note": "Correct: dispersible DHP",
    "app": {
     "species": "falciparum",
@@ -377,7 +520,8 @@
     "doseChecks": [],
     "doseNotes": [
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -405,7 +549,22 @@
     "pqTablets": "1/4",
     "pqDays": "14"
    },
+   "rxRows": [
+    {
+     "name": "Primaquine",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "14"
+    },
+    {
+     "name": "Dihidroartemisinin-piperakuin",
+     "amount": "1",
+     "perDay": "1",
+     "days": "3"
+    }
+   ],
    "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
+   "dhpFreq": 1,
    "note": "Correct: mixed infection, primaquine 14 days",
    "app": {
     "species": "mixed",
@@ -430,7 +589,8 @@
     "doseChecks": [],
     "doseNotes": [
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -458,7 +618,28 @@
     "pqTablets": "1/4",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "DHP",
+     "amount": "1",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "PQ",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "1"
+    },
+    {
+     "name": "Paracetamol",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "3"
+    }
+   ],
    "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "dhpFreq": 1,
    "note": "ERROR: primaquine for P. malariae (none expected). Age 24 months: standing tables start here",
    "app": {
     "species": "malariae",
@@ -485,7 +666,8 @@
     ],
     "doseNotes": [
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -513,7 +695,22 @@
     "pqTablets": "1/4",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "DHP",
+     "amount": "1",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "Primakuin",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "1"
+    }
+   ],
    "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "dhpFreq": 1,
    "note": "ERROR: blood test recorded NEGATIVE but an ACT was prescribed",
    "app": {
     "species": "falciparum",
@@ -540,7 +737,8 @@
     ],
     "doseNotes": [
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -568,7 +766,34 @@
     "pqTablets": "1/4",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "Dihidroartemisinin-piperakuin",
+     "amount": "1/2",
+     "perDay": "1",
+     "days": "5"
+    },
+    {
+     "name": "Primaquine",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "1"
+    },
+    {
+     "name": "Paracetamol",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "3"
+    },
+    {
+     "name": "Amoksisilin",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "5"
+    }
+   ],
    "regimenText": "DHP ½ tab 1x1 selama 5 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "dhpFreq": 1,
    "note": "ERROR: DHP for 5 days. Severely stunted and underweight child",
    "app": {
     "species": "falciparum",
@@ -596,7 +821,8 @@
     "doseNotes": [
      "weight-over-age",
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -624,7 +850,28 @@
     "pqTablets": "1/2",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "PQ",
+     "amount": "1/2",
+     "perDay": "1",
+     "days": "1"
+    },
+    {
+     "name": "DHP",
+     "amount": "1 1/2",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "Paracetamol",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "3"
+    }
+   ],
    "regimenText": "DHP 1½ tab 1x1 selama 3 hari; Primakuin ½ tab 1x1 selama 1 hari",
+   "dhpFreq": 1,
    "note": "Correct dose, obese child: the app adds the ideal-weight note",
    "app": {
     "species": "falciparum",
@@ -651,7 +898,8 @@
      "weight-over-age",
      "obesity",
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -679,7 +927,28 @@
     "pqTablets": "1/4",
     "pqDays": "14"
    },
+   "rxRows": [
+    {
+     "name": "DHP",
+     "amount": "1",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "Primakuin",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "14"
+    },
+    {
+     "name": "Paracetamol",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "3"
+    }
+   ],
    "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 14 hari",
+   "dhpFreq": 1,
    "note": "Correct dose, severely wasted child (Gizi buruk)",
    "app": {
     "species": "vivax",
@@ -704,7 +973,8 @@
     "doseChecks": [],
     "doseNotes": [
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -732,7 +1002,22 @@
     "pqTablets": "1/4",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "DHP dispersibel",
+     "amount": "1 1/2",
+     "perDay": "2",
+     "days": "3"
+    },
+    {
+     "name": "Primaquine",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "1"
+    }
+   ],
    "regimenText": "DHP dispersibel 3 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "dhpFreq": 2,
    "note": "ERROR: dispersible DHP one tablet too many",
    "app": {
     "species": "falciparum",
@@ -759,6 +1044,9 @@
     ],
     "doseNotes": [
      "empty-stomach"
+    ],
+    "v4Extra": [
+     "dhp-frequency"
     ]
    }
   },
@@ -787,7 +1075,9 @@
     "pqTablets": "",
     "pqDays": ""
    },
+   "rxRows": [],
    "regimenText": "Artesunat IV dosis awal 47,4 mg (berat 15,8 kg); rujuk",
+   "dhpFreq": 1,
    "note": "Severe malaria, artesunate dose correct (3 mg/kg under 20 kg)",
    "app": {
     "species": "falciparum",
@@ -810,7 +1100,8 @@
     "doseNotes": [
      "severe-treatment",
      "artesunate-expected"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -838,7 +1129,9 @@
     "pqTablets": "",
     "pqDays": ""
    },
+   "rxRows": [],
    "regimenText": "Artesunat IV dosis awal 43,4 mg (berat 18,1 kg); rujuk",
+   "dhpFreq": 1,
    "note": "ERROR: artesunate calculated at 2.4 mg/kg instead of 3 mg/kg",
    "app": {
     "species": "falciparum",
@@ -863,7 +1156,8 @@
     "doseNotes": [
      "severe-treatment",
      "artesunate-expected"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -891,7 +1185,9 @@
     "pqTablets": "",
     "pqDays": ""
    },
+   "rxRows": [],
    "regimenText": "Artesunat IV dosis awal 60 mg (berat 20 kg); rujuk",
+   "dhpFreq": 1,
    "note": "EDGE: exactly 20.0 kg. The guideline does not say which rate applies: the app must answer \"not sure\"",
    "app": {
     "species": "falciparum",
@@ -916,7 +1212,8 @@
     "doseNotes": [
      "severe-treatment",
      "artesunate-boundary"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -944,7 +1241,28 @@
     "pqTablets": "1/4",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "DHP",
+     "amount": "1",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "PQ",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "1"
+    },
+    {
+     "name": "Paracetamol",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "3"
+    }
+   ],
    "regimenText": "DHP 1 tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "dhpFreq": 1,
    "note": "EDGE: exactly 17.0 kg (top of the >10-17 kg column). Correct dose. Last month of the 0-59 range",
    "app": {
     "species": "falciparum",
@@ -969,7 +1287,8 @@
     "doseChecks": [],
     "doseNotes": [
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -997,7 +1316,22 @@
     "pqTablets": "",
     "pqDays": ""
    },
+   "rxRows": [
+    {
+     "name": "DHP",
+     "amount": "1/2",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "Paracetamol",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "3"
+    }
+   ],
    "regimenText": "DHP ½ tab 1x1 selama 3 hari",
+   "dhpFreq": 1,
    "note": "EDGE: exactly 6.0 kg and age 5 months: no primaquine, DHP 1/2",
    "app": {
     "species": "falciparum",
@@ -1021,7 +1355,8 @@
     "doseChecks": [],
     "doseNotes": [
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -1049,7 +1384,28 @@
     "pqTablets": "1/4",
     "pqDays": "1"
    },
+   "rxRows": [
+    {
+     "name": "Primaquine",
+     "amount": "1/4",
+     "perDay": "1",
+     "days": "1"
+    },
+    {
+     "name": "Dihidroartemisinin-piperakuin",
+     "amount": "1/2",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "Paracetamol",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "3"
+    }
+   ],
    "regimenText": "DHP ½ tab 1x1 selama 3 hari; Primakuin ¼ tab 1x1 selama 1 hari",
+   "dhpFreq": 1,
    "note": "ERROR: standard primaquine given although G6PD deficiency is recorded",
    "app": {
     "species": "falciparum",
@@ -1077,7 +1433,8 @@
     "doseNotes": [
      "g6pd-special-dose",
      "empty-stomach"
-    ]
+    ],
+    "v4Extra": []
    }
   },
   {
@@ -1105,7 +1462,22 @@
     "pqTablets": "",
     "pqDays": ""
    },
+   "rxRows": [
+    {
+     "name": "Dihidroartemisinin-piperakuin dispersibel",
+     "amount": "1",
+     "perDay": "1",
+     "days": "3"
+    },
+    {
+     "name": "Amoksisilin",
+     "amount": "1/2",
+     "perDay": "3",
+     "days": "5"
+    }
+   ],
    "regimenText": "DHP dispersibel 1 tab 1x1 selama 3 hari",
+   "dhpFreq": 1,
    "note": "EDGE: dispersible tablet below 5 kg: the table does not cover it, so the app must answer \"cannot check\"",
    "app": {
     "species": "falciparum",
@@ -1131,7 +1503,8 @@
     ],
     "doseNotes": [
      "cannot-look-up"
-    ]
+    ],
+    "v4Extra": []
    }
   }
  ]

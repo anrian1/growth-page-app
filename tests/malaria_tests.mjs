@@ -103,6 +103,15 @@ check('G6PD deficiency without primaquine is not flagged as a mismatch', !r.find
 r = checkRegimen(pack, { ...base, g6pd: 'unknown' });
 check('unknown G6PD adds nothing', !r.findings.some((f) => f.id.includes('g6pd')));
 
+// ---- DHP is once a day (form v4 has a "times per day" box) ----
+r = checkRegimen(pack, { ...base, dhpTimes: 2 });
+check('DHP written twice a day is flagged and cites Standar Pengobatan 4', r.findings.some((f) => f.id === 'dhp-frequency' && f.level === 'check' && f.cite.section === 'Standar Pengobatan 4' && f.cite.quote.includes('H1 pada dosis kedua')) && r.status === 'differs', JSON.stringify(r.findings.map((f) => f.id)));
+r = checkRegimen(pack, { ...base, dhpTimes: 1 });
+check('DHP once a day: no frequency finding', !r.findings.some((f) => f.id === 'dhp-frequency') && r.status === 'match');
+r = checkRegimen(pack, { ...base });
+check('times per day not given: no frequency finding', !r.findings.some((f) => f.id === 'dhp-frequency'));
+check('the once-daily statement is required for a pack to load', !validateMalariaPack((() => { const x = JSON.parse(JSON.stringify(raw)); delete x.statements.dhpOnceDaily; return x; })()).ok);
+
 // ---- dispersible ----
 r = checkRegimen(pack, { ...base, weightKg: 9, ageMonths: 10, formulation: 'dispersible', dhpTablets: '3/2' });
 check('dispersible at 9 kg: 1½ tablets matches Tabel 4', r.status === 'match', JSON.stringify(r.findings.filter((f) => f.level === 'check')));

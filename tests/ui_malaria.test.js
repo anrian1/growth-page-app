@@ -59,7 +59,7 @@ describe('malaria dose check on the result screen', () => {
     expect(rec.malaria.status).toBe('differs'); expect(rec.malaria.findings.some((f) => f.id === 'dhp-differs' && f.level === 'check')).toBe(true); expect(rec.malaria.packDraft).toBe(true);
     $('export-all').click(); await tick(100);
     const [header, line] = (await readBlob(downloaded[0])).trim().split('\r\n');
-    expect(header).toContain('malaria_status,malaria_species,malaria_form,dhp_tabs_day,dhp_days,pq_tabs_day,pq_days,artesunate_mg,g6pd,pregnancy,malaria_findings,malaria_pack');
+    expect(header).toContain('malaria_status,malaria_species,malaria_form,dhp_tabs_day,dhp_days,dhp_times_day,pq_tabs_day,pq_days,artesunate_mg,g6pd,pregnancy,malaria_findings,malaria_pack');
     expect(line).toContain('differs'); expect(line).toContain('dhp-differs'); expect(line).toContain('(draft)');
   });
 
