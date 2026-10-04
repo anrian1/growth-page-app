@@ -7,9 +7,9 @@ Built for the Hack-Nation x World Bank Small AI for Development hackathon 2026 (
 
 **Designed for any clinic and, by design, any disease. Piloted on two: child nutritional status and malaria dosing, using Indonesian data and guidelines.** Only these two are implemented.
 
-> **Because of HONAI, a primary-care nurse or doctor will turn a handwritten medical record into a checked nutritional status and a guideline dose check in seconds, at the bedside, with no signal, that they would otherwise leave on paper or re-type late. We know because on `[UPDATE: N]` test pages the app read `[UPDATE: x of y]` values correctly and flagged the one it could not be sure of.**
+> **Because of HONAI, a primary-care nurse or doctor will turn a handwritten medical record into a checked nutritional status and a guideline dose check in seconds, at with no signal,cutting time spent doing administrative work, leaving more time for actual health care delivery for the community**
 
-**Try it:** `[UPDATE: demo URL]` · in English: `[UPDATE: demo URL]?lang=en` · the **ID | EN** button in the header switches at any time.
+
 
 ![A synthetic test page, photographed from a tablet screen](docs/sample-synthetic-photo-v3.jpg)
 
